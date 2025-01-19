@@ -1,0 +1,168 @@
+/* Global Styles */
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f5f5f5;
+  margin: 0;
+  padding: 0;
+}
+
+/* Header */
+.oterm-header {
+  position: fixed;
+  width: 100%;
+  height: 5%;
+  top: 0;
+  z-index: 1000;
+  padding: 20px 0;
+  color: #fff;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  background-color: grey;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  left: 0;
+}
+
+/* Hamburger Menu Button */
+.oterm-nav-toggle {
+  font-size: 36px;
+  cursor: pointer;
+  color: white;
+  position: absolute;
+  left: 20px;
+}
+
+/* Side Menu */
+.oterm-side-menu {
+  position: fixed;
+  top: 0;
+  left: -300px;
+  width: 250px;
+  height: 100%;
+  background-color: #fff;
+  box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
+  transition: left 0.3s ease;
+  padding: 20px;
+  text-align: left;
+  z-index: 1001;
+}
+
+.oterm-side-menu.active {
+  left: 0;
+}
+
+.oterm-side-menu .oterm-menu-item {
+  padding: 15px 0;
+  font-size: 24px;
+  color: #333;
+}
+
+.oterm-side-menu a {
+  text-decoration: none;
+  color: black;
+  display: block;
+  width: 100%;
+}
+
+.oterm-close-btn {
+  font-size: 36px;
+  color: #333;
+  cursor: pointer;
+  position: absolute;
+  top: 10px;
+  right: 20px;
+}
+
+/* Hero Section */
+.oterm-hero {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 30vh;
+  background-color: #f5f5f5;
+  color: black;
+  text-align: center;
+  padding-top: 50px;
+}
+
+.oterm-hero h1 {
+  font-size: 48px;
+  margin-bottom: 20px;
+}
+
+/* Product List */
+.oterm-product-list {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+  padding: 20px;
+}
+
+.oterm-product-item {
+  background-color: white;
+  padding: 20px;
+  width: 200px;
+  border-radius: 8px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.oterm-product-item img {
+  width: 100%;
+  height: auto;
+  border-radius: 8px;
+}
+
+.oterm-product-item h3 {
+  margin-top: 10px;
+  font-size: 20px;
+}
+
+.oterm-product-item p {
+  margin-top: 5px;
+  color: #888;
+}
+
+.oterm-product-item .oterm-price {
+  font-weight: bold;
+  margin-top: 10px;
+  color: #333;
+}
+
+/* Logo */
+.oterm-logo {
+  font-size: 24px; /* Állítsd a kívánt méretre */
+  font-weight: bold; /* Tedd félkövérré a szöveget */
+  color: white; /* Tartsd fehér színűnek a logót */
+}
+
+/* Footer */
+.oterm-footer {
+  background-color: #333;
+  color: white;
+  text-align: center;
+  padding: 10px 0;
+  margin-top: 20px;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+  .oterm-hero h1 {
+    font-size: 36px;
+  }
+
+  .oterm-product-item {
+    width: 150px;
+  }
+}
+
+@media (max-width: 767px) {
+  .oterm-side-menu {
+    width: 200px;
+  }
+
+  .oterm-side-menu .oterm-menu-item {
+    font-size: 20px;
+  }
+}
