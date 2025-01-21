@@ -98,8 +98,8 @@ export default function SignUpForm() {
   return (
     <div
       style={{
-        backgroundColor: darkMode ? '#555' : '#f5f5f5',
-        color: darkMode ? 'white' : 'black',
+        backgroundColor: darkMode ? '#555' : '#f5f5f5', // Dark mode background vs light mode background
+        color: darkMode ? 'white' : 'black', // Text color adjustment for dark and light modes
         height: '100vh',
         zIndex: 0,
         position: 'relative',
@@ -120,9 +120,19 @@ export default function SignUpForm() {
         <IconButton sx={{ color: 'white' }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h4" sx={{ flex: 1, textAlign: 'center' }}>
+        <Typography variant="h1"
+        sx={{
+          position: 'absolute',
+          top: '3.5%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontWeight: 'bold',
+          fontSize: '2rem',
+          textAlign: 'center',
+          color: darkMode ? 'white' : 'white',}}>
           Adali Clothing
-        </Typography>
+       
+      </Typography>
         <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
             component={Link}

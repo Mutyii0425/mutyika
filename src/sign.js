@@ -116,9 +116,20 @@ export default function SignInForm() {
         <IconButton sx={{ color: 'white' }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h4" sx={{ flex: 1, textAlign: 'center' }}>
+        <Typography variant="h1"
+        sx={{
+          position: 'absolute',
+          top: '3.5%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontWeight: 'bold',
+          fontSize: '2rem',
+          textAlign: 'center',
+          color: darkMode ? 'white' : 'white',}}>
           Adali Clothing
-        </Typography>
+       
+      </Typography>
+
         <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
             component={Link}
@@ -155,6 +166,23 @@ export default function SignInForm() {
         </Box>
       </Box>
 
+      {/* Central Adali Text */}
+      <Typography
+        variant="h1"
+        sx={{
+          position: 'absolute',
+          top: '50%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontWeight: 'bold',
+          fontSize: '6rem',
+          textAlign: 'center',
+          color: darkMode ? 'white' : '#333',
+        }}
+      >
+        Adali
+      </Typography>
+
       <Menu />
       <Container
         sx={{
@@ -165,6 +193,7 @@ export default function SignInForm() {
           width: '35%',
         }}
       >
+        {/* Form Box */}
         <Box
           id="form-box"
           sx={{
@@ -227,6 +256,8 @@ export default function SignInForm() {
               style: { color: darkMode ? 'white' : 'black' },
             }}
             sx={{
+             
+
               '& input': {
                 backgroundColor: darkMode ? '#333' : '#fff',
               },
