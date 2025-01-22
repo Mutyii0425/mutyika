@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react'; 
 import { Link } from 'react-router-dom';
-import { Typography, Button, IconButton, FormGroup, FormControlLabel, Switch } from '@mui/material';
+import { Typography, Button, IconButton, FormGroup, FormControlLabel, Switch, Box } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import CloseIcon from '@mui/icons-material/Close';  // Added for closing the menu
 import logo2 from './logo2.png';
+import Menu from './menu2';  // Importing the Menu component
 
 const Home = () => {
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
 
   const toggleSideMenu = () => {
-    setSideMenuActive(!sideMenuActive);
+    console.log('Menu toggled:', !sideMenuActive);
+    setSideMenuActive((prev) => !prev);  // Toggle the side menu state
   };
+
+  useEffect(() => {
+    if (sideMenuActive) {
+      document.body.style.overflow = 'hidden';  // Prevent body scroll while menu is open
+    } else {
+      document.body.style.overflow = 'auto';  // Re-enable body scroll
+    }
+  }, [sideMenuActive]);
 
   return (
     <div
@@ -21,17 +32,47 @@ const Home = () => {
         overflow: 'hidden',
       }}
     >
+      {/* Conditionally render the Menu component */}
+      <Box
+        sx={{
+          position: 'fixed',
+          top: 0,
+          left: sideMenuActive ? 0 : '-250px',  // Use left to control the position
+          width: '250px',
+          height: '100%',
+          backgroundColor: '#fff',
+          boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 1200,
+          transition: 'left 0.1s ease-in-out',  // Apply slower sliding transition
+        }}
+      >
+        <IconButton
+          onClick={toggleSideMenu}
+          sx={{
+            position: 'absolute',
+            top: '10px',
+            right: '10px',
+          }}
+        >
+          <CloseIcon />
+        </IconButton>
+        <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
+      </Box>
+
       {/* Header */}
       <div
         style={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between', // Keeps space between menu icon and buttons
+          justifyContent: 'space-between',
           backgroundColor: darkMode ? '#333' : '#333',
           padding: '10px 20px',
+          position: 'relative',
           width: '100%',
+          boxSizing: 'border-box',
         }}
       >
+        {/* Left: Menu Icon */}
         <IconButton
           onClick={toggleSideMenu}
           style={{ color: darkMode ? 'white' : 'white' }}
@@ -39,23 +80,24 @@ const Home = () => {
           <MenuIcon />
         </IconButton>
 
-        {/* Center the Title without pushing the buttons */}
-        <div style={{ flexGrow: 1, display: 'flex', justifyContent: 'center' }}>
-          <Typography
-            variant="h1"
-            sx={{
-              fontWeight: 'bold',
-              fontSize: '2rem',
-              textAlign: 'center',
-              color: darkMode ? 'white' : 'white',
-            }}
-          >
-            Adali Clothing
-          </Typography>
-        </div>
+        {/* Center: Title */}
+        <Typography
+          variant="h1"
+          style={{
+            position: 'absolute',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontWeight: 'bold',
+            fontSize: '2rem',
+            color: darkMode ? 'white' : 'white',
+            margin: 0,
+          }}
+        >
+          Adali Clothing
+        </Typography>
 
-        {/* Buttons aligned to the right */}
-        <div style={{ display: 'flex', gap: '5px' }}>
+        {/* Right: Buttons */}
+        <div style={{ display: 'flex', gap: '10px' }}>
           <Button
             component={Link}
             to="/sign"
@@ -63,8 +105,8 @@ const Home = () => {
               color: '#fff',
               border: '1px solid #fff',
               borderRadius: '5px',
-              textAlign:'left 10px',
-              padding: '5px 10px',
+              padding: '5px 15px',
+              whiteSpace: 'nowrap',
               '&:hover': {
                 backgroundColor: '#fff',
                 color: '#333',
@@ -80,8 +122,8 @@ const Home = () => {
               color: '#fff',
               border: '1px solid #fff',
               borderRadius: '5px',
-              textAlign:'left 10px',
-              padding: '5px 10px',
+              padding: '5px 15px',
+              whiteSpace: 'nowrap',
               '&:hover': {
                 backgroundColor: '#fff',
                 color: '#333',
@@ -288,7 +330,7 @@ const Home = () => {
               padding: '10px',
               textAlign: 'center',
               transition: 'transform 0.3s ease',
-              marginTop: '10px', // Added space between the image and text
+              marginTop: '10px',
             }}
           >
             Empty Card

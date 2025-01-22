@@ -29,7 +29,7 @@ const Oterm = () => {
   return (
     <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
       {/* Header */}
-      <AppBar position="fixed" sx={{ backgroundColor: "grey" }}>
+      <AppBar position="fixed" sx={{ backgroundColor: "#333" }}>
         <Toolbar>
           <IconButton
             edge="start"
@@ -39,7 +39,7 @@ const Oterm = () => {
           >
             <MenuIcon />
           </IconButton>
-          <Typography variant="h6" sx={{ flexGrow: 1, textAlign: "center" }}>
+          <Typography variant="h4" sx={{ flexGrow: 1, textAlign: "center" }}>
             Adali Clothing
           </Typography>
         </Toolbar>
