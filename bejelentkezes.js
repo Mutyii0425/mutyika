@@ -5,7 +5,7 @@ import cors from 'cors';
 import bcrypt from 'bcrypt'; // Új könyvtár jelszó hash-eléshez
 
 const app = express();
-const PORT = 4000;
+const PORT = 5000;
 
 // Middleware for handling JSON data
 app.use(bodyParser.json());
@@ -32,45 +32,6 @@ db.connect((err) => {
   console.log('Successfully connected to the database!');
 });
 
-// Registration endpoint with password hashing
-app.post('/register', async (req, res) => {
-  const { name, email, password } = req.body;
-
-  if (!name || !email || !password) {
-    return res.status(400).json({ error: 'Missing data!' });
-  }
-
-  // Check if user already exists
-  db.query('SELECT * FROM user WHERE email = ?', [email], async (err, results) => {
-    if (err) {
-      console.error('Error during query:', err.message);
-      return res.status(500).json({ error: 'Database error!' });
-    }
-
-    if (results.length > 0) {
-      return res.status(400).json({ error: 'This email is already registered!' });
-    }
-
-    try {
-      // Hash the password before storing it
-      const hashedPassword = await bcrypt.hash(password, 10);
-
-      // Add user to the database with hashed password
-      const sql = 'INSERT INTO user (felhasznalonev, email, jelszo) VALUES (?, ?, ?)';
-      db.query(sql, [name, email, hashedPassword], (err, result) => {
-        if (err) {
-          console.error('Error during database operation:', err.message);
-          return res.status(500).json({ error: 'Database error!' });
-        }
-        res.status(201).json({ message: 'Registration successful!' });
-      });
-    } catch (error) {
-      console.error('Error during password hashing:', error.message);
-      res.status(500).json({ error: 'Internal server error!' });
-    }
-  });
-});
-
 // Login endpoint with password comparison
 app.post('/login', (req, res) => {
   const { email, password } = req.body;
@@ -78,6 +39,7 @@ app.post('/login', (req, res) => {
   if (!email || !password) {
     return res.status(400).json({ error: 'Missing data!' });
   }
+  
 
   // Check if user exists in the database
   db.query('SELECT * FROM user WHERE email = ?', [email], async (err, results) => {
