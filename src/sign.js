@@ -16,6 +16,7 @@ import Switch from '@mui/material/Switch';
 import MenuIcon from '@mui/icons-material/Menu';
 import Typography from '@mui/material/Typography';
 import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const randomColor = () => {
   const r = Math.floor(Math.random() * 256);
@@ -25,9 +26,51 @@ const randomColor = () => {
 };
 
 export default function SignInForm() {
+  const [darkMode, setDarkMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
-  const [darkMode, setDarkMode] = useState(true);
+  const [email, setEmail] = useState('');
+  const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+
+    if (!email || !password) {
+      setError('Kérjük, töltse ki az összes mezőt!');
+      return;
+    }
+
+    try {
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include',
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setError(data.error || 'Hiba a bejelentkezés során');
+      } else {
+        alert(data.message); // Sikeres bejelentkezés üzenet
+
+        // Sikeres bejelentkezés után mentés a localStorage-ba
+        localStorage.setItem('token', data.token);
+
+        navigate('/kezdolap'); // Navigálás a kezdőlapra
+
+        // űrlap törlése a sikeres bejelentkezés után
+        setEmail('');
+        setPassword('');
+      }
+    } catch (error) {
+      setError('Hálózati hiba, próbálja újra.');
+    }
+  };
 
   const dvdLogoRef = useRef({
     x: 90,
@@ -215,6 +258,8 @@ export default function SignInForm() {
             required
             fullWidth
             margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             InputProps={{
               style: { color: darkMode ? 'white' : 'black' },
             }}
@@ -272,6 +317,7 @@ export default function SignInForm() {
             }}
           >
             <Button
+            onClick={handleSubmit}
               type="submit"
               variant="contained"
               style={{ color: darkMode ? 'white' : 'black' }}
@@ -281,7 +327,7 @@ export default function SignInForm() {
                 borderColor: 'black',
               }}
             >
-              Regisztráció
+              Bejelentkezes
             </Button>
           </Box>
         </Box>

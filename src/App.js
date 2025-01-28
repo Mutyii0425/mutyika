@@ -10,7 +10,8 @@ const App = () => {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Home />} /> {/* Kezdőlap */}
+        <Route path="/" element={<Home />} />
+        <Route path="/kezdolap" element={<Home />} />  {/* Kezdőlap */}
         <Route path="/oterm" element={<Oterm />} /> {/* Összes Termék */}
         <Route path="/signup" element={<SignUp />} />{/* singup oldal */}
         <Route path="/sign" element={<SignIn />} />{/* singup oldal */}

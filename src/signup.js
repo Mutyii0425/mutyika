@@ -15,7 +15,7 @@ import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
 import MenuIcon from '@mui/icons-material/Menu';
 import Typography from '@mui/material/Typography';
-import { Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 const randomColor = () => {
   const r = Math.floor(Math.random() * 256);
@@ -29,7 +29,11 @@ export default function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
   const [darkMode, setDarkMode] = useState(true);
+
+
 
   const dvdLogoRef = useRef({
     x: 90,
@@ -94,7 +98,48 @@ export default function SignUpForm() {
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
+  const navigate = useNavigate();
 
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+  
+      if (password !== confirmPassword) {
+        alert('A jelszavak nem egyeznek!');
+        return;
+      }
+  
+      try {
+        const response = await fetch('http://localhost:4000/register', 
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ name, email, password }),
+        });
+  
+        if (!response.ok) {
+          const errorData = await response.json();
+          alert(`Hiba: ${errorData.error}`);
+        } else {
+          const data = await response.json();
+  
+          alert(data.message); // Sikeres regisztráció üzenet
+  
+          navigate('/kezdolap'); // Navigálás a kezdőlapra
+  
+          // űrlap törlése a sikeres regisztráció után
+          setName('');
+          setEmail('');
+          setPassword('');
+          setConfirmPassword('');
+        }
+      } catch (error) {
+        console.error('Hálózati hiba:', error);
+        alert('Hiba történt a regisztráció során!');
+      }
+    };
   return (
     <div
       style={{
@@ -135,7 +180,7 @@ export default function SignUpForm() {
       </Typography>
         <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
-            component={Link}
+            component="form"
             to="/sign"
             sx={{
               color: '#fff',
@@ -151,7 +196,7 @@ export default function SignUpForm() {
             Sign In
           </Button>
           <Button
-            component={Link}
+            component="form"
             to="/signup"
             sx={{
               color: '#fff',
@@ -181,7 +226,9 @@ export default function SignUpForm() {
       >
         <Box
           id="form-box"
+         
           sx={{
+
             padding: 3,
             borderRadius: 2,
             boxShadow: 3,
@@ -199,6 +246,8 @@ export default function SignUpForm() {
             required
             fullWidth
             margin="normal"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
             InputProps={{
               style: { color: darkMode ? 'white' : 'black' },
             }}
@@ -219,6 +268,8 @@ export default function SignUpForm() {
             required
             fullWidth
             margin="normal"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
             InputProps={{
               style: { color: darkMode ? 'white' : 'black' },
             }}
@@ -308,6 +359,7 @@ export default function SignUpForm() {
             }}
           >
             <Button
+              onClick={handleSubmit}
               type="submit"
               variant="contained"
               style={{ color: darkMode ? 'white' : 'black' }}
@@ -355,14 +407,11 @@ export default function SignUpForm() {
           <FormControlLabel
             control={
               <Switch
-                defaultChecked
-                color="default"
-                sx={{
-                  color: 'black',
-                }}
-                checked={darkMode}
-                onChange={() => setDarkMode((prev) => !prev)}
-              />
+              color="default"
+              sx={{ color: 'black' }}
+              checked={darkMode}  // Keep the checked prop
+              onChange={() => setDarkMode((prev) => !prev)}
+          />
             }
             label="Dark Mode"
           />
