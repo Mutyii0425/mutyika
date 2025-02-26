@@ -51,19 +51,27 @@ export default function SignUpForm() {
     const img = new Image(); 
     img.src = logo; 
     
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let animationFrameId;
+    
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+  
+    handleResize();
+    window.addEventListener('resize', handleResize);
   
     const update = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
       ctx.save();
+      
       const radius = dvdLogoRef.current.width / 2;
       const centerX = dvdLogoRef.current.x + radius;
       const centerY = dvdLogoRef.current.y + radius;
+      
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.clip();
-  
+      
       ctx.drawImage(
         img,
         dvdLogoRef.current.x,
@@ -71,30 +79,32 @@ export default function SignUpForm() {
         dvdLogoRef.current.width,
         dvdLogoRef.current.height
       );
-  
+      
       ctx.restore();
-  
+      
       dvdLogoRef.current.x += dvdLogoRef.current.dx;
       dvdLogoRef.current.y += dvdLogoRef.current.dy;
-  
+      
       if (dvdLogoRef.current.x <= 0 || dvdLogoRef.current.x + dvdLogoRef.current.width >= canvas.width) {
-        dvdLogoRef.current.dx = dvdLogoRef.current.dx * -1;
-        dvdLogoRef.current.color = 'white';
+        dvdLogoRef.current.dx *= -1;
       }
-  
+      
       if (dvdLogoRef.current.y <= 0 || dvdLogoRef.current.y + dvdLogoRef.current.height >= canvas.height) {
-        dvdLogoRef.current.dy = dvdLogoRef.current.dy * -1;
-        dvdLogoRef.current.color = 'white';
+        dvdLogoRef.current.dy *= -1;
       }
-  
-      requestAnimationFrame(update);
+      
+      animationFrameId = requestAnimationFrame(update);
     };
   
-    img.onload = () => {
-      update();
+    img.onload = update;
+  
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
+  
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);

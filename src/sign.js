@@ -26,51 +26,12 @@ const randomColor = () => {
 };
 
 export default function SignInForm() {
-  const [darkMode, setDarkMode] = useState(true);
   const [showPassword, setShowPassword] = useState(false);
   const [password, setPassword] = useState('');
-  const [email, setEmail] = useState('');
-  const [error, setError] = useState('');
+  const [darkMode, setDarkMode] = useState(true);
+  const [email, setEmail] = useState(''); // E-mail hozzáadása
+
   const navigate = useNavigate();
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-
-    if (!email || !password) {
-      setError('Kérjük, töltse ki az összes mezőt!');
-      return;
-    }
-
-    try {
-      const response = await fetch('http://localhost:4000/login', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ email, password }),
-        credentials: 'include',
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        setError(data.error || 'Hiba a bejelentkezés során');
-      } else {
-        alert(data.message); // Sikeres bejelentkezés üzenet
-
-        // Sikeres bejelentkezés után mentés a localStorage-ba
-        localStorage.setItem('token', data.token);
-
-        navigate('/kezdolap'); // Navigálás a kezdőlapra
-
-        // űrlap törlése a sikeres bejelentkezés után
-        setEmail('');
-        setPassword('');
-      }
-    } catch (error) {
-      setError('Hálózati hiba, próbálja újra.');
-    }
-  };
 
   const dvdLogoRef = useRef({
     x: 90,
@@ -88,19 +49,27 @@ export default function SignInForm() {
     const img = new Image(); 
     img.src = logo; 
     
-    canvas.width = window.innerWidth;
-    canvas.height = window.innerHeight;
+    let animationFrameId;
+    
+    const handleResize = () => {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    };
+  
+    handleResize();
+    window.addEventListener('resize', handleResize);
   
     const update = () => {
       ctx.clearRect(0, 0, canvas.width, canvas.height);
-  
       ctx.save();
+      
       const radius = dvdLogoRef.current.width / 2;
       const centerX = dvdLogoRef.current.x + radius;
       const centerY = dvdLogoRef.current.y + radius;
+      
       ctx.arc(centerX, centerY, radius, 0, 2 * Math.PI);
       ctx.clip();
-  
+      
       ctx.drawImage(
         img,
         dvdLogoRef.current.x,
@@ -108,31 +77,63 @@ export default function SignInForm() {
         dvdLogoRef.current.width,
         dvdLogoRef.current.height
       );
-  
+      
       ctx.restore();
-  
+      
       dvdLogoRef.current.x += dvdLogoRef.current.dx;
       dvdLogoRef.current.y += dvdLogoRef.current.dy;
-  
+      
       if (dvdLogoRef.current.x <= 0 || dvdLogoRef.current.x + dvdLogoRef.current.width >= canvas.width) {
-        dvdLogoRef.current.dx = dvdLogoRef.current.dx * -1;
-        dvdLogoRef.current.color = 'white';
+        dvdLogoRef.current.dx *= -1;
       }
-  
+      
       if (dvdLogoRef.current.y <= 0 || dvdLogoRef.current.y + dvdLogoRef.current.height >= canvas.height) {
-        dvdLogoRef.current.dy = dvdLogoRef.current.dy * -1;
-        dvdLogoRef.current.color = 'white';
+        dvdLogoRef.current.dy *= -1;
       }
-  
-      requestAnimationFrame(update);
+      
+      animationFrameId = requestAnimationFrame(update);
     };
   
-    img.onload = () => {
-      update();
+    img.onload = update;
+  
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      cancelAnimationFrame(animationFrameId);
     };
   }, []);
 
+  
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
+  
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(`Hiba: ${data.error}`);
+        return;
+      }
+  
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        alert('Sikeres bejelentkezés!');
+        navigate('/kezdolap');
+      }
+  
+    } catch (error) {
+      console.error('Hiba a bejelentkezés során:', error);
+      alert('Szerverhiba!');
+    }
+  };
+  
 
   return (
     <div
@@ -159,20 +160,9 @@ export default function SignInForm() {
         <IconButton sx={{ color: 'white' }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h1"
-        sx={{
-          position: 'absolute',
-          top: '3.5%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontWeight: 'bold',
-          fontSize: '2rem',
-          textAlign: 'center',
-          color: darkMode ? 'white' : 'white',}}>
+        <Typography variant="h4" sx={{ flex: 1, textAlign: 'center' }}>
           Adali Clothing
-       
-      </Typography>
-
+        </Typography>
         <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
             component={Link}
@@ -209,23 +199,6 @@ export default function SignInForm() {
         </Box>
       </Box>
 
-      {/* Central Adali Text */}
-      <Typography
-        variant="h1"
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontWeight: 'bold',
-          fontSize: '6rem',
-          textAlign: 'center',
-          color: darkMode ? 'white' : '#333',
-        }}
-      >
-        Adali
-      </Typography>
-
       <Menu />
       <Container
         sx={{
@@ -236,7 +209,6 @@ export default function SignInForm() {
           width: '35%',
         }}
       >
-        {/* Form Box */}
         <Box
           id="form-box"
           sx={{
@@ -259,7 +231,7 @@ export default function SignInForm() {
             fullWidth
             margin="normal"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)} // E-mail kezelés
             InputProps={{
               style: { color: darkMode ? 'white' : 'black' },
             }}
@@ -301,8 +273,6 @@ export default function SignInForm() {
               style: { color: darkMode ? 'white' : 'black' },
             }}
             sx={{
-             
-
               '& input': {
                 backgroundColor: darkMode ? '#333' : '#fff',
               },
@@ -317,7 +287,7 @@ export default function SignInForm() {
             }}
           >
             <Button
-            onClick={handleSubmit}
+              onClick={handleLogin}
               type="submit"
               variant="contained"
               style={{ color: darkMode ? 'white' : 'black' }}
@@ -327,7 +297,7 @@ export default function SignInForm() {
                 borderColor: 'black',
               }}
             >
-              Bejelentkezes
+              Bejelentkezés
             </Button>
           </Box>
         </Box>
@@ -365,12 +335,11 @@ export default function SignInForm() {
           <FormControlLabel
             control={
               <Switch
-                defaultChecked
                 color="default"
                 sx={{
                   color: 'black',
                 }}
-                checked={darkMode}
+                checked={darkMode} // Csak ezt használd
                 onChange={() => setDarkMode((prev) => !prev)}
               />
             }

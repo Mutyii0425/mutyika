@@ -5,14 +5,25 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';  // Added for closing the menu
 import logo2 from './logo2.png';
 import Menu from './menu2';  // Importing the Menu component
+import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+
+  const navigate = useNavigate();
 
   const toggleSideMenu = () => {
     console.log('Menu toggled:', !sideMenuActive);
     setSideMenuActive((prev) => !prev);  // Toggle the side menu state
+  };
+
+
+  const handleLogout = () => {
+    localStorage.removeItem('user');
+    setIsLoggedIn(false);
+    navigate('/');
   };
 
   useEffect(() => {
@@ -22,6 +33,15 @@ const Home = () => {
       document.body.style.overflow = 'auto';  // Re-enable body scroll
     }
   }, [sideMenuActive]);
+
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const userData = localStorage.getItem('user');
+      setIsLoggedIn(!!userData);
+    };
+    
+    checkLoginStatus();
+  }, []);
 
   return (
     <div
@@ -97,42 +117,82 @@ const Home = () => {
         </Typography>
 
         {/* Right: Buttons */}
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <Button
-            component={Link}
-            to="/sign"
-            sx={{
-              color: '#fff',
-              border: '1px solid #fff',
-              borderRadius: '5px',
-              padding: '5px 15px',
-              whiteSpace: 'nowrap',
-              '&:hover': {
-                backgroundColor: '#fff',
-                color: '#333',
-              },
-            }}
-          >
-            Sign In
-          </Button>
-          <Button
-            component={Link}
-            to="/signup"
-            sx={{
-              color: '#fff',
-              border: '1px solid #fff',
-              borderRadius: '5px',
-              padding: '5px 15px',
-              whiteSpace: 'nowrap',
-              '&:hover': {
-                backgroundColor: '#fff',
-                color: '#333',
-              },
-            }}
-          >
-            Sign Up
-          </Button>
-        </div>
+        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+    {isLoggedIn ? (
+      <>
+       <Button 
+  sx={{
+    color: '#fff',
+    padding: '10px 20px', // Alkalmazkodik a kör alakú gombhoz
+    backgroundColor: '#FF6347', // Koral szín
+    borderRadius: '50%', // Kör alak
+    textTransform: 'none', // Nincs nagybetűsítés
+    width: '50px', // Állítható a kívánt átmérő
+    height: '50px', // Állítható a kívánt átmérő
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    '&:hover': {
+      backgroundColor: '#FF4500' // Hover effektushoz egy sötétebb koral árnyalat
+    }
+  }}
+>
+  Bejelentkezve
+</Button>
+
+        <Button
+          onClick={handleLogout}
+          sx={{
+            color: '#fff',
+            border: '1px solid #fff',
+            borderRadius: '5px',
+            padding: '5px 10px',
+            '&:hover': {
+              backgroundColor: '#fff',
+              color: '#333',
+            },
+          }}
+        >
+          Kijelentkezés
+        </Button>
+      </>
+    ) : (
+      <>
+        <Button
+          component={Link}
+          to="/sign"
+          sx={{
+            color: '#fff',
+            border: '1px solid #fff',
+            borderRadius: '5px',
+            padding: '5px 10px',
+            '&:hover': {
+              backgroundColor: '#fff',
+              color: '#333',
+            },
+          }}
+        >
+          Sign In
+        </Button>
+        <Button
+          component={Link}
+          to="/signup"
+          sx={{
+            color: '#fff',
+            border: '1px solid #fff',
+            borderRadius: '5px',
+            padding: '5px 10px',
+            '&:hover': {
+              backgroundColor: '#fff',
+              color: '#333',
+            },
+          }}
+        >
+          Sign Up
+        </Button>
+      </>
+    )}
+  </Box>
       </div>
 
       {/* Dark Mode Switch */}
