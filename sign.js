@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-
+import Menu from './menu';
 import TextField from '@mui/material/TextField';
 import Container from '@mui/material/Container';
 import Button from '@mui/material/Button';
@@ -25,16 +25,13 @@ const randomColor = () => {
   return `rgb(${r}, ${g}, ${b})`; 
 };
 
-export default function SignUpForm() {
+export default function SignInForm() {
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
   const [darkMode, setDarkMode] = useState(true);
+  const [email, setEmail] = useState(''); // E-mail hozzáadása
 
-
+  const navigate = useNavigate();
 
   const dvdLogoRef = useRef({
     x: 90,
@@ -107,55 +104,42 @@ export default function SignUpForm() {
 
   
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
-  const toggleConfirmPasswordVisibility = () =>
-    setShowConfirmPassword((prev) => !prev);
-  const navigate = useNavigate();
 
-
-  const handleSubmit = async (e) => {
-      e.preventDefault();
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    
+    try {
+      const response = await fetch('http://localhost:4000/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+      });
   
-      if (password !== confirmPassword) {
-        alert('A jelszavak nem egyeznek!');
+      const data = await response.json();
+  
+      if (!response.ok) {
+        alert(`Hiba: ${data.error}`);
         return;
       }
   
-      try {
-        const response = await fetch('http://localhost:4000/register', 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name, email, password }),
-        });
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+        alert('Sikeres bejelentkezés!');
+        navigate('/kezdolap');
+    }
   
-        if (!response.ok) {
-          const errorData = await response.json();
-          alert(`Hiba: ${errorData.error}`);
-        } else {
-          const data = await response.json();
+    } catch (error) {
+      console.error('Hiba a bejelentkezés során:', error);
+      alert('Szerverhiba!');
+    }
+  };
   
-          alert(data.message); // Sikeres regisztráció üzenet
-  
-          navigate('/kezdolap'); // Navigálás a kezdőlapra
-  
-          // űrlap törlése a sikeres regisztráció után
-          setName('');
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-        }
-      } catch (error) {
-        console.error('Hálózati hiba:', error);
-        alert('Hiba történt a regisztráció során!');
-      }
-    };
+
   return (
     <div
       style={{
-        backgroundColor: darkMode ? '#555' : '#f5f5f5', // Dark mode background vs light mode background
-        color: darkMode ? 'white' : 'black', // Text color adjustment for dark and light modes
+        backgroundColor: darkMode ? '#555' : '#f5f5f5',
+        color: darkMode ? 'white' : 'black',
         height: '100vh',
         zIndex: 0,
         position: 'relative',
@@ -176,21 +160,11 @@ export default function SignUpForm() {
         <IconButton sx={{ color: 'white' }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h1"
-        sx={{
-          position: 'absolute',
-          top: '3.5%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          fontWeight: 'bold',
-          fontSize: '2rem',
-          textAlign: 'center',
-          color: darkMode ? 'white' : 'white',}}>
+        <Typography variant="h4" sx={{ flex: 1, textAlign: 'center' }}>
           Adali Clothing
-       
-      </Typography>
+        </Typography>
         <Box sx={{ display: 'flex', gap: '10px' }}>
-        <Button
+          <Button
             component={Link}
             to="/sign"
             sx={{
@@ -225,52 +199,29 @@ export default function SignUpForm() {
         </Box>
       </Box>
 
-   
+      <Menu />
       <Container
-        maxWidth="sm"
         sx={{
           display: 'flex',
           justifyContent: 'center',
           alignItems: 'center',
           height: '100%',
+          width: '35%',
         }}
       >
         <Box
           id="form-box"
-         
           sx={{
-
             padding: 3,
-            borderRadius: 2,
-            boxShadow: 3,
+            borderRadius: 3,
+            boxShadow: 2,
             backgroundColor: darkMode ? '#333' : '#fff',
             color: darkMode ? 'white' : 'black',
             width: '100%',
             position: 'relative',
-            border: darkMode ? '' : '2px solid black',
+            border: darkMode ? 'black' : 'black',
           }}
         >
-          <TextField
-            label="Név"
-            variant="outlined"
-            name="name"
-            required
-            fullWidth
-            margin="normal"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            InputProps={{
-              style: { color: darkMode ? 'white' : 'black' },
-            }}
-            InputLabelProps={{
-              style: { color: darkMode ? 'white' : 'black' },
-            }}
-            sx={{
-              '& input': {
-                backgroundColor: darkMode ? '#333' : '#fff',
-              },
-            }}
-          />
           <TextField
             label="E-mail"
             type="email"
@@ -280,7 +231,7 @@ export default function SignUpForm() {
             fullWidth
             margin="normal"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => setEmail(e.target.value)} // E-mail kezelés
             InputProps={{
               style: { color: darkMode ? 'white' : 'black' },
             }}
@@ -328,40 +279,6 @@ export default function SignUpForm() {
             }}
           />
 
-          <TextField
-            label="Jelszó megerősítése"
-            type={showConfirmPassword ? 'text' : 'password'}
-            variant="outlined"
-            name="confirmPassword"
-            required
-            fullWidth
-            margin="normal"
-            value={confirmPassword}
-            onChange={(e) => setConfirmPassword(e.target.value)}
-            InputProps={{
-              style: { color: darkMode ? 'white' : 'black' },
-              endAdornment: confirmPassword && (
-                <InputAdornment position="end">
-                  <IconButton
-                    onClick={toggleConfirmPasswordVisibility}
-                    edge="end"
-                    style={{ color: 'gray' }}
-                  >
-                    {showConfirmPassword ? <Visibility /> : <VisibilityOff />}
-                  </IconButton>
-                </InputAdornment>
-              ),
-            }}
-            InputLabelProps={{
-              style: { color: darkMode ? 'white' : 'black' },
-            }}
-            sx={{
-              '& input': {
-                backgroundColor: darkMode ? '#333' : '#fff',
-              },
-            }}
-          />
-
           <Box
             sx={{
               display: 'flex',
@@ -370,17 +287,17 @@ export default function SignUpForm() {
             }}
           >
             <Button
-              onClick={handleSubmit}
+              onClick={handleLogin}
               type="submit"
               variant="contained"
               style={{ color: darkMode ? 'white' : 'black' }}
               sx={{
                 backgroundColor: darkMode ? '#555' : '#ddd',
                 border: '2px solid',
-                borderColor: darkMode ? 'black' : 'black',
+                borderColor: 'black',
               }}
             >
-              Regisztráció
+              Bejelentkezés
             </Button>
           </Box>
         </Box>
@@ -397,7 +314,7 @@ export default function SignUpForm() {
             position: 'absolute',
             top: 12,
             left: 16,
-            zIndex: 1000,
+            zIndex: 1,
             transition: 'background-color 0.3s ease',
             '&:hover': {
               backgroundColor: '#666',
@@ -418,11 +335,13 @@ export default function SignUpForm() {
           <FormControlLabel
             control={
               <Switch
-              color="default"
-              sx={{ color: 'black' }}
-              checked={darkMode}  // Keep the checked prop
-              onChange={() => setDarkMode((prev) => !prev)}
-          />
+                color="default"
+                sx={{
+                  color: 'black',
+                }}
+                checked={darkMode} // Csak ezt használd
+                onChange={() => setDarkMode((prev) => !prev)}
+              />
             }
             label="Dark Mode"
           />
@@ -435,7 +354,6 @@ export default function SignUpForm() {
             zIndex: -1,
             width: '104%',
             height: '100%',
-            bottom: '',
             top: '4%',
           }}
         />
