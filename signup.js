@@ -53,16 +53,21 @@ export default function SignUpForm() {
     img.src = logo; 
     
     let animationFrameId;
+    let isComponentMounted = true;
     
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (isComponentMounted) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
     };
   
     handleResize();
     window.addEventListener('resize', handleResize);
   
     const update = () => {
+      if (!isComponentMounted) return;
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
       
@@ -100,8 +105,11 @@ export default function SignUpForm() {
     img.onload = update;
   
     return () => {
+      isComponentMounted = false;
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+      img.onload = null;
     };
   }, []);
 

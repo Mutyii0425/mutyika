@@ -50,16 +50,21 @@ export default function SignInForm() {
     img.src = logo; 
     
     let animationFrameId;
+    let isComponentMounted = true;  // Új flag a komponens életciklusának követésére
     
     const handleResize = () => {
-      canvas.width = window.innerWidth;
-      canvas.height = window.innerHeight;
+      if (isComponentMounted) {  // Csak akkor frissítünk, ha a komponens még él
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+      }
     };
   
     handleResize();
     window.addEventListener('resize', handleResize);
   
     const update = () => {
+      if (!isComponentMounted) return;  // Ha már unmounted, nem futtatjuk tovább
+      
       ctx.clearRect(0, 0, canvas.width, canvas.height);
       ctx.save();
       
@@ -97,11 +102,13 @@ export default function SignInForm() {
     img.onload = update;
   
     return () => {
+      isComponentMounted = false;  // Jelezzük, hogy a komponens unmounted
       window.removeEventListener('resize', handleResize);
       cancelAnimationFrame(animationFrameId);
+      ctx.clearRect(0, 0, canvas.width, canvas.height);  // Töröljük a canvast
+      img.onload = null;  // Töröljük az onload eseménykezelőt
     };
-  }, []);
-
+}, []);
   
   const togglePasswordVisibility = () => setShowPassword((prev) => !prev);
 
@@ -160,9 +167,19 @@ export default function SignInForm() {
         <IconButton sx={{ color: 'white' }}>
           <MenuIcon />
         </IconButton>
-        <Typography variant="h4" sx={{ flex: 1, textAlign: 'center' }}>
+        <Typography variant="h1"
+        sx={{
+          position: 'absolute',
+          top: '3.5%',
+          left: '50%',
+          transform: 'translate(-50%, -50%)',
+          fontWeight: 'bold',
+          fontSize: '2rem',
+          textAlign: 'center',
+          color: darkMode ? 'white' : 'white',}}>
           Adali Clothing
-        </Typography>
+       
+      </Typography>
         <Box sx={{ display: 'flex', gap: '10px' }}>
           <Button
             component={Link}

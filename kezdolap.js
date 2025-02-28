@@ -18,6 +18,7 @@ import {
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import logo2 from './logo2.png';
 import Menu from './menu2';
 import { useNavigate } from 'react-router-dom';
@@ -66,6 +67,10 @@ const Home = () => {
     setSideMenuActive((prev) => !prev);
   };
 
+  const handleCartClick = () => {
+    navigate('/kosar');
+  };
+  
   useEffect(() => {
     if (sideMenuActive) {
       document.body.style.overflow = 'hidden';
@@ -158,91 +163,101 @@ const Home = () => {
         >
           Adali Clothing
         </Typography>
-
-        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {isLoggedIn ? (
-            <div>
-              <Button
-                ref={anchorRef}
-                onClick={handleToggle}
-                sx={{
-                  color: '#fff',
-                  zIndex: 1300,
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                }}
-              >
-                Profil
-              </Button>
-              <Popper
-  open={open}
-  anchorEl={anchorRef.current}
-  placement="bottom-start"
-  transition
-  disablePortal
-  sx={{ zIndex: 1300 }}  // Ez az érték magasabb mint a dark mode switch z-indexe
+          <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {isLoggedIn ? (
+              <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+           <IconButton
+  onClick={handleCartClick}
+  sx={{
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    }
+  }}
 >
+  <ShoppingCartIcon />
+</IconButton>
 
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin:
-                        placement === 'bottom-start' ? 'left top' : 'left bottom',
-                    }}
-                  >
-                    <Paper>
-                      <ClickAwayListener onClickAway={handleClose}>
-                      <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
-  <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
-  <MenuItem onClick={handleClose}>Fiókom</MenuItem>
-  <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
-</MenuList>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
-            </div>
-          ) : (
-            <>
-              <Button
-                component={Link}
-                to="/sign"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                component={Link}
-                to="/signup"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-        </Box>
-      </div>
+                <Button
+                  ref={anchorRef}
+                  onClick={handleToggle}
+                  sx={{
+                    color: '#fff',
+                    zIndex: 1300,
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                  }}
+                >
+                  Profil
+                </Button>
+                <Popper
+                  open={open}
+                  anchorEl={anchorRef.current}
+                  placement="bottom-start"
+                  transition
+                  disablePortal
+                  sx={{ zIndex: 1300 }}  // Ez az érték magasabb mint a dark mode switch z-indexe
+                >
+                  {({ TransitionProps, placement }) => (
+                    <Grow
+                      {...TransitionProps}
+                      style={{
+                        transformOrigin:
+                          placement === 'bottom-start' ? 'left top' : 'left bottom',
+                      }}
+                    >
+                      <Paper>
+                        <ClickAwayListener onClickAway={handleClose}>
+                          <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
+                            <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
+                            <MenuItem onClick={handleClose}>Fiókom</MenuItem>
+                            <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
+                          </MenuList>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper>
+              </Box>
+            ) : (
+              <>
+                <Button
+                  component={Link}
+                  to="/sign"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  component={Link}
+                  to="/signup"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </Box>
+        </div>
 
       <FormGroup
         sx={{
@@ -445,3 +460,4 @@ const Home = () => {
 };
 
 export default Home;
+
