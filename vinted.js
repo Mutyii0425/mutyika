@@ -1,50 +1,52 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Box, AppBar, Toolbar, Typography, IconButton, CircularProgress, Grid, Card, CardContent } from "@mui/material";
-import MenuIcon from "@mui/icons-material/Menu";
-import CloseIcon from "@mui/icons-material/Close";
-import Menu from './menu3';
-import { Link } from 'react-router-dom';
-import { Button } from '@mui/material';
-import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useNavigate } from 'react-router-dom';
-import {
+import React, { useState, useEffect, useRef } from 'react';
+import { 
+  Box, 
+  Container,
+  Typography,
+  Grid,
+  Card,
+  CardMedia,
+  CardContent,
+  IconButton,
+  Button,
+  FormGroup,
+  FormControlLabel,
+  Switch,
   Popper,
   Grow,
   Paper,
   ClickAwayListener,
   MenuList,
-  MenuItem,
+  MenuItem
 } from '@mui/material';
+import { Link } from 'react-router-dom';
+import MenuIcon from '@mui/icons-material/Menu';
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import Menu from './menu2';
+import { useNavigate } from 'react-router-dom';
 
-const Oterm = () => {
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
-  const [products, setProducts] = useState([]);
-  const [loading, setLoading] = useState(true);
+export default function Vinted() {
   const [darkMode, setDarkMode] = useState(true);
+  const [sideMenuActive, setSideMenuActive] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [open, setOpen] = useState(false);
+  const [userName, setUserName] = useState('');
+  const [products, setProducts] = useState([]);
   const anchorRef = useRef(null);
   const navigate = useNavigate();
-  const [userName, setUserName] = useState('');
 
   useEffect(() => {
-    const dummyProducts = [
-      { azonosito: 1, nev: "Termék 1", termekleiras: "Ez egy minta termék.", ar: 5000 },
-      { azonosito: 2, nev: "Termék 2", termekleiras: "Ez egy másik minta termék.", ar: 7500 },
-    ];
-    setTimeout(() => {
-      setProducts(dummyProducts);
-      setLoading(false);
-    }, 1000);
+    const fetchProducts = async () => {
+      try {
+        const response = await fetch('http://localhost:4000/products');
+        const data = await response.json();
+        setProducts(data);
+      } catch (error) {
+        console.log('Hiba a termékek betöltésekor:', error);
+      }
+    };
+    fetchProducts();
   }, []);
-
-  const toggleSideMenu = () => {
-    setSideMenuOpen(!sideMenuOpen);
-  };
-
-  const handleCartClick = () => {
-    navigate('/kosar');
-  };
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -73,6 +75,14 @@ const Oterm = () => {
     navigate('/sign');
   };
 
+  const toggleSideMenu = () => {
+    setSideMenuActive((prev) => !prev);
+  };
+
+  const handleCartClick = () => {
+    navigate('/kosar');
+  };
+
   useEffect(() => {
     const checkLoginStatus = () => {
       const userData = localStorage.getItem('user');
@@ -86,7 +96,11 @@ const Oterm = () => {
   }, []);
 
   return (
-    <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
+    <div style={{
+      backgroundColor: darkMode ? '#555' : '#f5f5f5',
+      color: darkMode ? 'white' : 'black',
+      minHeight: '100vh',
+    }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',
@@ -214,89 +228,81 @@ const Oterm = () => {
         </Box>
       </div>
 
-      <Box
-        sx={{
-          position: "fixed",
-          top: 0,
-          left: sideMenuOpen ? 0 : "-250px",
-          width: "250px",
-          height: "100vh",
-          backgroundColor: "#fff",
-          transition: "left 0.1s ease-in-out",
-          zIndex: 1200,
-        }}
-      >
-        <Box sx={{ width: 250, padding: 2 }}>
-          <IconButton onClick={toggleSideMenu} sx={{ mb: 2 }}>
-            <CloseIcon />
-          </IconButton>
-          <Menu sideMenuOpen={sideMenuOpen} toggleSideMenu={toggleSideMenu} />
-        </Box>
+      <Box sx={{
+        position: 'fixed',
+        top: 0,
+        left: sideMenuActive ? 0 : '-250px',
+        width: '250px',
+        height: '100%',
+        backgroundColor: '#fff',
+        boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
+        zIndex: 1200,
+        transition: 'left 0.1s ease-in-out',
+      }}>
+        <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
       </Box>
 
-      <Box sx={{ padding: 2 }}>
-        {loading ? (
-          <Box sx={{ textAlign: "center", marginTop: 4 }}>
-            <CircularProgress />
-            <Typography variant="body1">Termékek betöltése...</Typography>
-          </Box>
-        ) : products.length > 0 ? (
-          <Grid container spacing={3} justifyContent="center">
-            {products.map((product) => (
-              <Grid item key={product.azonosito} xs={12} sm={6} md={4} lg={3}>
-                <Card
-                  sx={{
-                    padding: 2,
-                    borderRadius: 2,
-                    boxShadow: 3,
-                    transition: "transform 0.3s ease, box-shadow 0.3s ease",
-                    "&:hover": {
-                      transform: "scale(1.05)",
-                      boxShadow: 6,
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Typography variant="h6">{product.nev}</Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      {product.termekleiras}
-                    </Typography>
-                    <Typography
-                      variant="h6"
-                      sx={{ marginTop: 2, fontWeight: "bold" }}
-                    >
-                      {product.ar} Ft
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Grid>
-            ))}
-          </Grid>
-        ) : (
-          <Typography variant="body1" align="center">
-            Nincsenek elérhető termékek.
-          </Typography>
-        )}
-      </Box>
+      <FormGroup sx={{ position: 'absolute', top: 60, right: 20 }}>
+        <FormControlLabel
+          control={
+            <Switch
+              color="default"
+              checked={darkMode}
+              onChange={() => setDarkMode((prev) => !prev)}
+            />
+          }
+          label="Dark Mode"
+        />
+      </FormGroup>
 
-      <Box
-        sx={{
-          backgroundColor: "#333",
-          color: "white",
-          textAlign: "center",
-          padding: "10px 0",
-          position: "fixed",
-          bottom: 0,
-          left: 0,
-          right: 0
-        }}
-      >
-        <Typography variant="body2">
-          &copy; 2024 Adali Clothing - Minden jog fenntartva.
+      <Container maxWidth="xl" sx={{ mt: 8, mb: 4 }}>
+        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', color: darkMode ? 'white' : 'black' }}>
+          Feltöltött Termékek
         </Typography>
-      </Box>
-    </Box>
+        
+        <Grid container spacing={3}>
+          {products.map((product) => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
+              <Card sx={{ 
+                height: '500px',
+                backgroundColor: darkMode ? '#333' : 'white',
+                color: darkMode ? 'white' : 'black',
+                transition: 'transform 0.2s',
+                '&:hover': {
+                  transform: 'scale(1.02)'
+                }
+              }}>
+                <Box sx={{ position: 'relative', height: '350px' }}>
+                  <CardMedia
+                    component="img"
+                    sx={{ 
+                      height: '100%',
+                      width: '100%',
+                      objectFit: 'contain'
+                    }}
+                    image={product.imageUrl}
+                    alt={product.nev}
+                  />
+                </Box>
+                <CardContent>
+                  <Typography variant="h6" color={darkMode ? 'white' : 'black'}>
+                    {product.nev}
+                  </Typography>
+                  <Typography variant="h6" color="primary">
+                    {product.ar} Ft
+                  </Typography>
+                  <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
+                    {product.leiras}
+                  </Typography>
+                  <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
+                    Méret: {product.meret}
+                  </Typography>
+                </CardContent>
+              </Card>
+            </Grid>
+          ))}
+        </Grid>
+      </Container>
+    </div>
   );
-};
-
-export default Oterm;
+}

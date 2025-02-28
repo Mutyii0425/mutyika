@@ -24,9 +24,12 @@ const Menu = ({ sideMenuOpen, toggleSideMenu }) => {
         <Button component={Link} to="/oterm" sx={{ fontSize: '20px', color: '#333' }}>
           Termékek
         </Button>
-        <Button component={Link} to="/add" sx={{ fontSize: '20px', color: '#333' }}>
+         <Button component={Link} to="/add" sx={{ textAlign:'center', fontSize: '20px', color: '#333' }}>
           Töltsd fel a ruháidat
         </Button>
+         <Button component={Link} to="/vinted" sx={{ textAlign:'center', fontSize: '20px', color: '#333' }}>
+                  Felhasznalók által feltöltött ruhák
+                </Button>
       </Box>
     </Drawer>
   );

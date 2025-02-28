@@ -14,7 +14,8 @@ import {
   Popper,
   MenuItem,
   MenuList,
-  Stack
+  Stack,
+  Container
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
@@ -36,12 +37,8 @@ const Home = () => {
     setOpen((prevOpen) => !prevOpen);
   };
 
-  const handleClose = (event = {}) => {  // alapértelmezett üres objektum
-    if (
-      event.target &&
-      anchorRef.current &&
-      anchorRef.current.contains(event.target)
-    ) {
+  const handleClose = (event = {}) => {
+    if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
     setOpen(false);
@@ -59,8 +56,8 @@ const Home = () => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
-    setOpen(false);  // Először zárjuk be a menüt
-    navigate('/sign');  // Aztán navigáljunk
+    setOpen(false);
+    navigate('/sign');
   };
 
   const toggleSideMenu = () => {
@@ -70,7 +67,7 @@ const Home = () => {
   const handleCartClick = () => {
     navigate('/kosar');
   };
-  
+
   useEffect(() => {
     if (sideMenuActive) {
       document.body.style.overflow = 'hidden';
@@ -79,15 +76,12 @@ const Home = () => {
     }
   }, [sideMenuActive]);
 
- 
-
   useEffect(() => {
     const checkLoginStatus = () => {
       const userData = localStorage.getItem('user');
       if (userData) {
         const user = JSON.parse(userData);
         setIsLoggedIn(true);
-        console.log('Bejelentkezett felhasználó:', user); // Ellenőrzéshez
         setUserName(user.username || user.felhasznalonev || 'Felhasználó');
       }
     };
@@ -95,14 +89,11 @@ const Home = () => {
   }, []);
 
   return (
-    <div
-      style={{
-        backgroundColor: darkMode ? '#555' : '#f5f5f5',
-        color: darkMode ? 'white' : 'black',
-        height: '100vh',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{
+      backgroundColor: darkMode ? '#555' : '#f5f5f5',
+      color: darkMode ? 'white' : 'black',
+      minHeight: '100vh',
+    }}>
       <Box
         sx={{
           position: 'fixed',
@@ -418,6 +409,7 @@ const Home = () => {
             backgroundColor: darkMode ? '#555' : '#fff',
           }}
         >
+          <Link to="/add">
           <div
             style={{
               position: 'relative',
@@ -441,6 +433,7 @@ const Home = () => {
               }}
             />
           </div>
+          </Link>
           <Typography
             variant="body1"
             style={{
@@ -451,14 +444,53 @@ const Home = () => {
               marginTop: '10px',
             }}
           >
-            Empty Card
+            Töltsd fel a ruháidat
           </Typography>
         </div>
       </div>
+
+      <Box 
+        sx={{ 
+          width: '100%',
+          height: '200px',
+          overflow: 'hidden',
+          position: 'relative',
+          marginTop: '50px',
+          backgroundColor: darkMode ? '#444' : '#f0f0f0'
+        }}
+      >
+        <Box 
+          sx={{ 
+            display: 'flex',
+            position: 'absolute',
+            whiteSpace: 'nowrap',
+            animation: 'slideAnimation 20s linear infinite'
+          }}
+        >
+          {[...Array(6)].map((_, index) => (
+            <Box 
+              key={index}
+              component="img" 
+              src={logo2} 
+              sx={{ 
+                height: 180, 
+                m: 1,
+                filter: darkMode ? 'brightness(0.8)' : 'none'
+              }} 
+            />
+          ))}
+        </Box>
+        <style>
+          {`
+            @keyframes slideAnimation {
+              from { transform: translateX(100%); }
+              to { transform: translateX(-100%); }
+            }
+          `}
+        </style>
+      </Box>
     </div>
   );
-
 };
 
 export default Home;
-
