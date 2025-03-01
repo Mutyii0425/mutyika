@@ -21,6 +21,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import logo2 from './logo2.png';
+import Footer from './footer';
 import Menu from './menu2';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,6 +37,7 @@ const Home = () => {
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
+  
 
   const handleClose = (event = {}) => {
     if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
@@ -489,6 +491,7 @@ const Home = () => {
           `}
         </style>
       </Box>
+      <Footer />
     </div>
   );
 };

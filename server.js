@@ -4,7 +4,8 @@ const cors = require('cors');
 const app = express();
 
 app.use(cors());
-app.use(express.json());
+app.use(express.json({limit: '50mb'}));
+app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 const db = mysql.createConnection({
   host: 'localhost',
@@ -34,48 +35,47 @@ app.get('/categories', (req, res) => {
   });
 });
 
-// Termékek lekérése
 app.get('/products', (req, res) => {
-  const query = `
-    SELECT ut.*, k.cs_nev as kategoria_nev 
-    FROM usertermekek ut 
-    LEFT JOIN kategoriak k ON ut.kategoriaId = k.cs_azonosito
-  `;
-  
+  const query = 'SELECT * FROM usertermekek';
   db.query(query, (err, results) => {
-    if (err) {
-      console.log('Hiba a termékek lekérésénél:', err);
-      res.status(500).json({ error: 'Adatbázis hiba' });
-      return;
-    }
+    console.log('Lekért adatok:', results); // Ellenőrzéshez
     res.json(results);
   });
 });
 
 // Új termék mentése
 app.post('/usertermekek', (req, res) => {
-  const { kategoriaId, ar, nev, leiras, meret } = req.body;
+  const { kategoriaId, ar, nev, leiras, meret, imageUrl } = req.body;
   
+  console.log('Beérkezett adatok:', {
+    kategoriaId,
+    ar,
+    nev,
+    leiras,
+    meret,
+    imageUrl: imageUrl ? 'Kép megérkezett' : 'Nincs kép'
+  });
+
   const query = `
     INSERT INTO usertermekek 
-    (kategoriaId, ar, nev, leiras, meret) 
-    VALUES (?, ?, ?, ?, ?)
+    (kategoriaId, ar, nev, leiras, meret, imageUrl) 
+    VALUES (?, ?, ?, ?, ?, ?)
   `;
   
-  db.query(query, [kategoriaId, ar, nev, leiras, meret], (err, result) => {
+  db.query(query, [kategoriaId, ar, nev, leiras, meret, imageUrl], (err, result) => {
     if (err) {
-      console.log('Hiba a termék mentésénél:', err);
-      res.status(500).json({ error: 'Hiba a mentés során' });
+      console.log('SQL hiba:', err);
+      res.status(500).json({ error: err.message });
       return;
     }
     res.json({ 
-      message: 'Termék sikeresen mentve',
-      id: result.insertId 
+      success: true, 
+      id: result.insertId,
+      message: 'Termék sikeresen mentve' 
     });
   });
 });
 
-// Termék törlése
 app.delete('/products/:id', (req, res) => {
   const productId = req.params.id;
   

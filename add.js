@@ -1,4 +1,5 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   Box, 
   Button, 
@@ -21,39 +22,120 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloudUploadIcon from '@mui/icons-material/CloudUpload';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Menu from './menu2';
-import { useNavigate } from 'react-router-dom';
+import Footer from './footer';
 import Select from '@mui/material/Select';
 import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
-export default function Add() {
-  const [darkMode, setDarkMode] = useState(true);
-  const [sideMenuActive, setSideMenuActive] = useState(false);
-  const [selectedImage, setSelectedImage] = useState(null);
+function Add() {
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
-  const fileInputRef = useRef(null);
+  const [size, setSize] = useState('');
+  const [selectedCategory, setSelectedCategory] = useState('');
+  const [darkMode, setDarkMode] = useState(true);
+  const [sideMenuActive, setSideMenuActive] = useState(false);
+  const [selectedImage, setSelectedImage] = useState(null);
+  const navigate = useNavigate();
+
+  const handleSubmit = async () => {
+    if (!selectedImage || !title || !price || !description || !size || !selectedCategory) {
+      alert('Kérlek tölts ki minden mezőt és tölts fel képet!');
+      return;
+    }
+
+    const productData = {
+      kategoriaId: parseInt(selectedCategory),
+      ar: parseInt(price),
+      nev: title,
+      leiras: description, 
+      meret: size,
+      imageUrl: selectedImage
+    };
+
+    try {
+      const response = await fetch('http://localhost:5000/usertermekek', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(productData)
+      });
+
+      if (response.ok) {
+        alert('Sikeres feltöltés!');
+        navigate('/vinted');
+      } else {
+        throw new Error('Feltöltési hiba');
+      }
+    } catch (error) {
+      console.error('Hiba:', error);
+      alert('Hiba történt a feltöltés során!');
+    }
+  };
+
+  const [categories, setCategories] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState('');
-  const anchorRef = useRef(null);
-  const navigate = useNavigate();
-  const [categories, setCategories] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState('');
-  const [size, setSize] = useState('');
+  const fileInputRef = React.useRef(null);
+  const anchorRef = React.useRef(null);
 
-  const handleImageUpload = (event) => {
-    const file = event.target.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Image = reader.result;
-        setSelectedImage(base64Image);
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsLoggedIn(true);
+        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    fetch('http://localhost:5000/categories')
+      .then(response => response.json())
+      .then(data => setCategories(data))
+      .catch(error => console.log('Error:', error));
+  }, []);
+
+  // Adjuk hozzá ezt a useEffect-et
+useEffect(() => {
+  if (sideMenuActive) {
+    document.body.style.overflow = 'hidden';
+  } else {
+    document.body.style.overflow = 'auto';
+  }
+}, [sideMenuActive]);
+
+
+const handleImageUpload = (event) => {
+  const file = event.target.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      // Create an image element to resize
+      const img = new Image();
+      img.src = reader.result;
+      img.onload = () => {
+        // Create canvas
+        const canvas = document.createElement('canvas');
+        const MAX_WIDTH = 800;
+        const scaleSize = MAX_WIDTH / img.width;
+        canvas.width = MAX_WIDTH;
+        canvas.height = img.height * scaleSize;
+        
+        // Draw and compress image
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
+        setSelectedImage(compressedImage);
       };
-      reader.readAsDataURL(file);
-    }
-  };
+    };
+    reader.readAsDataURL(file);
+  }
+};
 
   const handleDragOver = (event) => {
     event.preventDefault();
@@ -106,25 +188,6 @@ export default function Add() {
   const toggleSideMenu = () => {
     setSideMenuActive((prev) => !prev);
   };
-
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
-      }
-    };
-    checkLoginStatus();
-  }, []);
-
-  useEffect(() => {
-    fetch('http://localhost:5000/categories')
-      .then(response => response.json())
-      .then(data => setCategories(data))
-      .catch(error => console.log('Error:', error));
-  }, []);
 
   return (
     <div style={{
@@ -340,151 +403,185 @@ export default function Add() {
               accept="image/*"
             />
           </Box>
-
-          <FormControl fullWidth margin="normal">
-            <InputLabel sx={{ color: darkMode ? 'white' : 'black' }}>Kategória</InputLabel>
-            <Select
-              value={selectedCategory}
-              onChange={(e) => setSelectedCategory(e.target.value)}
-              sx={{
-                color: darkMode ? 'white' : 'black',
-                backgroundColor: darkMode ? '#333' : '#fff',
-              }}
-            >
-              {categories.map((category) => (
-                <MenuItem key={category.cs_azonosito} value={category.cs_azonosito}>
-                  {category.cs_nev}
-                </MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-
-          <TextField
-            fullWidth
-            label="Ruha neve"
-            variant="outlined"
-            margin="normal"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: darkMode ? 'white' : 'black',
-                '& fieldset': {
-                  borderColor: darkMode ? 'grey.500' : 'grey.300',
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: darkMode ? 'grey.300' : 'grey.700',
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Ár"
-            variant="outlined"
-            margin="normal"
-            type="number"
-            value={price}
-            onChange={(e) => setPrice(e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: darkMode ? 'white' : 'black',
-                '& fieldset': {
-                  borderColor: darkMode ? 'grey.500' : 'grey.300',
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: darkMode ? 'grey.300' : 'grey.700',
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Leírás"
-            variant="outlined"
-            margin="normal"
-            multiline
-            rows={4}
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: darkMode ? 'white' : 'black',
-                '& fieldset': {
-                  borderColor: darkMode ? 'grey.500' : 'grey.300',
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: darkMode ? 'grey.300' : 'grey.700',
-              },
-            }}
-          />
-
-          <TextField
-            fullWidth
-            label="Méret"
-            variant="outlined"
-            margin="normal"
-            value={size}
-            onChange={(e) => setSize(e.target.value)}
-            sx={{
-              '& .MuiOutlinedInput-root': {
-                color: darkMode ? 'white' : 'black',
-                '& fieldset': {
-                  borderColor: darkMode ? 'grey.500' : 'grey.300',
-                },
-              },
-              '& .MuiInputLabel-root': {
-                color: darkMode ? 'grey.300' : 'grey.700',
-              },
-            }}
-          />
-
-          <Button
-            onClick={async () => {
-              const productData = {
-                kategoriaId: selectedCategory,
-                ar: parseInt(price),
-                nev: title,
-                leiras: description,
-                meret: size
-              };
-
-              try {
-                const response = await fetch('http://localhost:5000/usertermekek', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json'
+            <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
+              <InputLabel sx={{ 
+                color: darkMode ? 'grey.300' : 'grey.700'
+              }}>Kategória</InputLabel>
+              <Select
+                value={selectedCategory}
+                onChange={(e) => setSelectedCategory(e.target.value)}
+                sx={{
+                  color: darkMode ? 'white' : 'black',
+                  '& .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'grey.500' : 'grey.300',
                   },
-                  body: JSON.stringify(productData)
-                });
+                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'grey.400' : 'grey.400',
+                  },
+                  '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                    borderColor: darkMode ? 'grey.300' : 'grey.500',
+                  },
+                  '& .MuiSelect-icon': {
+                    color: darkMode ? 'grey.300' : 'grey.700',
+                  }
+                }}
+                MenuProps={{
+                  PaperProps: {
+                    sx: {
+                      bgcolor: darkMode ? '#333' : '#fff',
+                      '& .MuiMenuItem-root': {
+                        color: darkMode ? 'white' : 'black',
+                        '&:hover': {
+                          bgcolor: darkMode ? '#444' : '#f5f5f5',
+                        },
+                        '&.Mui-selected': {
+                          bgcolor: darkMode ? '#555' : '#e0e0e0',
+                          '&:hover': {
+                            bgcolor: darkMode ? '#666' : '#d5d5d5',
+                          }
+                        }
+                      }
+                    }
+                  }
+                }}
+              >
+                {categories.map((category) => (
+                  <MenuItem key={category.cs_azonosito} value={category.cs_azonosito}>
+                    {category.cs_nev}
+                  </MenuItem>
+                ))}
+              </Select>
+            </FormControl>
+            <TextField
+              fullWidth
+              margin="normal"
+              sx={{ mb: 2 }}
+              label="Ruha neve"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: darkMode ? 'white' : 'black',
+                  '& fieldset': {
+                    borderColor: darkMode ? 'grey.500' : 'grey.300',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: darkMode ? 'grey.300' : 'grey.700',
+                },
+              }}
+            />
 
-                if (response.ok) {
-                  alert('Termék sikeresen feltöltve!');
-                  navigate('/vinted');
-                }
-              } catch (error) {
-                console.log('Error:', error);
-                alert('Hiba történt a feltöltés során!');
-              }
-            }}
-            variant="contained"
-            fullWidth
-            sx={{
-              mt: 3,
-              backgroundColor: darkMode ? '#555' : '#primary',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: darkMode ? '#666' : '#primary.dark',
-              },
-            }}
-          >
-            Feltöltés
-          </Button>
+            <TextField
+              fullWidth
+              margin="normal"
+              sx={{ mb: 2 }}
+              label="Ár"
+              value={price}
+              onChange={(e) => setPrice(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: darkMode ? 'white' : 'black',
+                  '& fieldset': {
+                    borderColor: darkMode ? 'grey.500' : 'grey.300',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: darkMode ? 'grey.300' : 'grey.700',
+                },
+              }}
+            />
+
+            <TextField
+              fullWidth
+              margin="normal"
+              sx={{ mb: 2 }}
+              label="Leírás"
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  color: darkMode ? 'white' : 'black',
+                  '& fieldset': {
+                    borderColor: darkMode ? 'grey.500' : 'grey.300',
+                  },
+                },
+                '& .MuiInputLabel-root': {
+                  color: darkMode ? 'grey.300' : 'grey.700',
+                },
+              }}
+            />
+              <TextField
+                select
+                fullWidth
+                margin="normal"
+                sx={{ 
+                  mb: 2,
+                  '& .MuiOutlinedInput-root': {
+                    color: darkMode ? 'white' : 'black',
+                    '& fieldset': {
+                      borderColor: darkMode ? 'grey.500' : 'grey.300',
+                    },
+                    '& .MuiSelect-icon': {
+                      color: darkMode ? 'white' : 'black',
+                    }
+                  },
+                  '& .MuiInputLabel-root': {
+                    color: darkMode ? 'grey.300' : 'grey.700',
+                  }
+                }}
+                label="Méret"
+                value={size}
+                onChange={(e) => setSize(e.target.value)}
+                SelectProps={{
+                  MenuProps: {
+                    PaperProps: {
+                      sx: {
+                        bgcolor: darkMode ? '#333' : '#fff',
+                        '& .MuiMenuItem-root': {
+                          color: darkMode ? 'white' : 'black',
+                          '&:hover': {
+                            bgcolor: darkMode ? '#444' : '#f5f5f5',
+                          },
+                          '&.Mui-selected': {
+                            bgcolor: darkMode ? '#555' : '#e0e0e0',
+                            '&:hover': {
+                              bgcolor: darkMode ? '#666' : '#d5d5d5',
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }}
+              >
+                <MenuItem value="XS">XS</MenuItem>
+                <MenuItem value="S">S</MenuItem>
+                <MenuItem value="M">M</MenuItem>
+                <MenuItem value="L">L</MenuItem>
+                <MenuItem value="XL">XL</MenuItem>
+                <MenuItem value="XXL">XXL</MenuItem>
+              </TextField>
+      <Button
+    onClick={handleSubmit}
+    variant="contained"
+    fullWidth
+    sx={{
+      mt: 3,
+      mb: 2,
+      backgroundColor: darkMode ? '#555' : 'primary.main',
+      '&:hover': {
+        backgroundColor: darkMode ? '#666' : 'primary.dark',
+      }
+    }}
+  >
+    Feltöltés
+  </Button>
         </Paper>
       </Container>
+      <Footer />
     </div>
   );
 }
+
+export default Add;

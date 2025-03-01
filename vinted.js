@@ -9,56 +9,93 @@ import {
   CardContent,
   IconButton,
   Button,
+  Paper,
+  Popper,
+  MenuItem,
+  MenuList,
+  Grow,
+  ClickAwayListener,
+  Stack,
+  FormControl,
   FormGroup,
   FormControlLabel,
-  Switch,
-  Popper,
-  Grow,
-  Paper,
-  ClickAwayListener,
-  MenuList,
-  MenuItem
+  Switch
 } from '@mui/material';
 import { Link } from 'react-router-dom';
+import DeleteIcon from '@mui/icons-material/Delete';
+import EditIcon from '@mui/icons-material/Edit';
+import logo2 from './logo2.png';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Menu from './menu2';
+import Footer from './footer';
 import { useNavigate } from 'react-router-dom';
 
-export default function Vinted() {
+function Vinted() {
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState('');
   const [products, setProducts] = useState([]);
+  const [open, setOpen] = useState(false);
   const anchorRef = useRef(null);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchProducts = async () => {
       try {
-        const response = await fetch('http://localhost:4000/products');
+        const response = await fetch('http://localhost:5000/products');
         const data = await response.json();
+        console.log('Betöltött termékek:', data); // Ellenőrzéshez
         setProducts(data);
       } catch (error) {
-        console.log('Hiba a termékek betöltésekor:', error);
+        console.log('Hiba:', error);
       }
     };
     fetchProducts();
   }, []);
+  
+
+  useEffect(() => {
+    const userData = localStorage.getItem('user');
+    if (userData) {
+      const user = JSON.parse(userData);
+      setIsLoggedIn(true);
+      setUserName(user.username || user.felhasznalonev || 'Felhasználó');
+    }
+  }, []);
+
+  useEffect(() => {
+    const handleKeyPress = (event) => {
+      if (event.ctrlKey && event.shiftKey && event.key === 'Q') {
+        navigate('/user');
+      }
+    };
+  
+    window.addEventListener('keydown', handleKeyPress);
+    return () => window.removeEventListener('keydown', handleKeyPress);
+  }, [navigate]);
+  
+
+  const toggleSideMenu = () => {
+    setSideMenuActive(!sideMenuActive);
+  };
+
+  const handleCartClick = () => {
+    navigate('/kosar');
+  };
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
-
+  
   const handleClose = (event = {}) => {
     if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
       return;
     }
     setOpen(false);
   };
-
+  
   const handleListKeyDown = (event) => {
     if (event.key === 'Tab') {
       event.preventDefault();
@@ -67,33 +104,13 @@ export default function Vinted() {
       setOpen(false);
     }
   };
-
+  
   const handleLogout = () => {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
     setOpen(false);
     navigate('/sign');
   };
-
-  const toggleSideMenu = () => {
-    setSideMenuActive((prev) => !prev);
-  };
-
-  const handleCartClick = () => {
-    navigate('/kosar');
-  };
-
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
-      }
-    };
-    checkLoginStatus();
-  }, []);
 
   return (
     <div style={{
@@ -132,101 +149,100 @@ export default function Vinted() {
         >
           Adali Clothing
         </Typography>
-
-        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {isLoggedIn ? (
-            <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <IconButton
-                onClick={handleCartClick}
-                sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
-                }}
-              >
-                <ShoppingCartIcon />
-              </IconButton>
-              <Button
-                ref={anchorRef}
-                onClick={handleToggle}
-                sx={{
-                  color: '#fff',
-                  zIndex: 1300,
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                }}
-              >
-                Profil
-              </Button>
-              <Popper
-                open={open}
-                anchorEl={anchorRef.current}
-                placement="bottom-start"
-                transition
-                disablePortal
-                sx={{ zIndex: 1300 }}
-              >
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin:
-                        placement === 'bottom-start' ? 'left top' : 'left bottom',
-                    }}
-                  >
-                    <Paper>
-                      <ClickAwayListener onClickAway={handleClose}>
-                        <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
-                          <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
-                          <MenuItem onClick={handleClose}>Fiókom</MenuItem>
-                          <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
-                        </MenuList>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
-            </Box>
-          ) : (
-            <>
-              <Button
-                component={Link}
-                to="/sign"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                component={Link}
-                to="/signup"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-        </Box>
-      </div>
+          <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {isLoggedIn ? (
+              <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <IconButton
+                  onClick={handleCartClick}
+                  sx={{
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    }
+                  }}
+                >
+                  <ShoppingCartIcon />
+                </IconButton>
+                <Button
+                  ref={anchorRef}
+                  onClick={handleToggle}
+                  sx={{
+                    color: '#fff',
+                    zIndex: 1300,
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                  }}
+                >
+                  Profil
+                </Button>
+                <Popper
+                  open={open}
+                  anchorEl={anchorRef.current}
+                  placement="bottom-start"
+                  transition
+                  disablePortal
+                  sx={{ zIndex: 1300 }}
+                >
+                  {({ TransitionProps, placement }) => (
+                    <Grow
+                      {...TransitionProps}
+                      style={{
+                        transformOrigin:
+                          placement === 'bottom-start' ? 'left top' : 'left bottom',
+                      }}
+                    >
+                      <Paper>
+                        <ClickAwayListener onClickAway={handleClose}>
+                          <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
+                            <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
+                            <MenuItem onClick={handleClose}>Fiókom</MenuItem>
+                            <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
+                          </MenuList>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper>
+              </Box>
+            ) : (
+              <>
+                <Button
+                  component={Link}
+                  to="/sign"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  component={Link}
+                  to="/signup"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </Box>
+        </div>
 
       <Box sx={{
         position: 'fixed',
@@ -235,28 +251,38 @@ export default function Vinted() {
         width: '250px',
         height: '100%',
         backgroundColor: '#fff',
-        boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
+        transition: 'left 0.3s',
         zIndex: 1200,
-        transition: 'left 0.1s ease-in-out',
       }}>
         <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
       </Box>
 
-      <FormGroup sx={{ position: 'absolute', top: 60, right: 20 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              color="default"
-              checked={darkMode}
-              onChange={() => setDarkMode((prev) => !prev)}
-            />
-          }
-          label="Dark Mode"
-        />
-      </FormGroup>
+      <FormGroup
+  sx={{
+    position: 'absolute',
+    top: 60,
+    right: 20,
+  }}
+>
+  <FormControlLabel
+    control={
+      <Switch
+        defaultChecked
+        color="default"
+        sx={{
+          color: 'black',
+        }}
+        checked={darkMode}
+        onChange={() => setDarkMode((prev) => !prev)}
+      />
+    }
+    label="Dark Mode"
+  />
+</FormGroup>
+
 
       <Container maxWidth="xl" sx={{ mt: 8, mb: 4 }}>
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', color: darkMode ? 'white' : 'black' }}>
+        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center' }}>
           Feltöltött Termékek
         </Typography>
         
@@ -267,42 +293,42 @@ export default function Vinted() {
                 height: '500px',
                 backgroundColor: darkMode ? '#333' : 'white',
                 color: darkMode ? 'white' : 'black',
-                transition: 'transform 0.2s',
-                '&:hover': {
-                  transform: 'scale(1.02)'
-                }
+                display: 'flex',
+                flexDirection: 'column'
               }}>
-                <Box sx={{ position: 'relative', height: '350px' }}>
+                <Box sx={{
+                  height: 350,
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  backgroundColor: 'transparent'
+                }}>
                   <CardMedia
                     component="img"
                     sx={{ 
                       height: '100%',
-                      width: '100%',
-                      objectFit: 'contain'
+                      width: 'auto',
+                      objectFit: 'contain',
+                      maxWidth: '100%'
                     }}
                     image={product.imageUrl}
                     alt={product.nev}
                   />
                 </Box>
                 <CardContent>
-                  <Typography variant="h6" color={darkMode ? 'white' : 'black'}>
-                    {product.nev}
-                  </Typography>
-                  <Typography variant="h6" color="primary">
-                    {product.ar} Ft
-                  </Typography>
-                  <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
-                    {product.leiras}
-                  </Typography>
-                  <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
-                    Méret: {product.meret}
-                  </Typography>
+                  <Typography variant="h6">{product.nev}</Typography>
+                  <Typography variant="h6" color="primary">{product.ar} Ft</Typography>
+                  <Typography variant="body2">{product.leiras}</Typography>
+                  <Typography variant="body2">Méret: {product.meret}</Typography>
                 </CardContent>
               </Card>
             </Grid>
           ))}
         </Grid>
       </Container>
+      <Footer />
     </div>
   );
 }
+
+export default Vinted;
