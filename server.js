@@ -1,16 +1,16 @@
-const express = require('express');
-const mysql = require('mysql');
-const cors = require('cors');
-const app = express();
+import express from 'express';
+import mysql from 'mysql';
+import cors from 'cors';
 
+const app = express();
 app.use(cors());
 app.use(express.json({limit: '50mb'}));
 app.use(express.urlencoded({limit: '50mb', extended: true}));
 
 const db = mysql.createConnection({
   host: 'localhost',
-  user: 'root',
-  password: '',
+  user: 'webshoppp',
+  password: 'Premo900',
   database: 'webshoppp'
 });
 
@@ -91,7 +91,48 @@ app.delete('/products/:id', (req, res) => {
   });
 });
 
+app.get('/products/:id', (req, res) => {
+  console.log('Requested product ID:', req.params.id);
+  const query = 'SELECT * FROM usertermekek WHERE id = ?';
+  db.query(query, [req.params.id], (err, results) => {
+    console.log('Query results:', results);
+    if (err) {
+      console.log('Database error:', err);
+      res.status(500).json({ error: 'Database error' });
+      return;
+    }
+    res.json(results[0]);
+  });
+});
+
+
+app.post('/orders/create', (req, res) => {
+  const { termek, statusz, mennyiseg, vevo_id } = req.body;
+  
+  const query = `
+    INSERT INTO rendeles 
+    (termek, statusz, mennyiseg, vevo_id, rendeles_id) 
+    VALUES (?, ?, ?, ?, ?)
+  `;
+  
+  db.query(query, [termek, statusz, mennyiseg, vevo_id, vevo_id], (err, result) => {
+    if (err) {
+      console.log('Database error:', err);
+      res.status(500).json({ error: 'Database error', details: err.message });
+      return;
+    }
+    
+    res.status(200).json({ 
+      success: true, 
+      orderId: result.insertId,
+      message: 'Order created successfully' 
+    });
+  });
+});
 const port = 5000;
 app.listen(port, () => {
   console.log(`Server fut a ${port} porton`);
 });
+
+
+

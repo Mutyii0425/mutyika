@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import Menu from './menu2';
-import CloseIcon from '@mui/icons-material/Close';
 
+import CloseIcon from '@mui/icons-material/Close';
 import {
   Box,
   Container,
@@ -22,12 +22,16 @@ import {
   ClickAwayListener,
   MenuList,
   MenuItem,
+  Badge
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
 import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
+
+import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+
 
 export default function Kosar() {
   const [darkMode, setDarkMode] = useState(true);
@@ -37,38 +41,78 @@ export default function Kosar() {
   const anchorRef = React.useRef(null);
   const navigate = useNavigate();
   const [userName, setUserName] = useState('');
-  const [termekek, setTermekek] = useState([
-    { id: 1, nev: "Póló", ar: 5990, mennyiseg: 1 },
-    { id: 2, nev: "Nadrág", ar: 12990, mennyiseg: 1 },
-  ]);
+  const [cartItems, setCartItems] = useState([]);
+  const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 0);
+  const [totalPrice, setTotalPrice] = useState(0);
 
-  const [osszesAr, setOsszesAr] = useState(0);
+  useEffect(() => {    const items = JSON.parse(localStorage.getItem('cartItems')) || [];
+    setCartItems(items);
+  }, []);
 
   useEffect(() => {
-    const ujOsszeg = termekek.reduce((acc, termek) => {
-      return acc + (termek.ar * termek.mennyiseg);
-    }, 0);
-    setOsszesAr(ujOsszeg);
-  }, [termekek]);
+    const newTotal = cartItems.reduce((sum, item) => sum + (item.ar * item.mennyiseg), 0);
+    setTotalPrice(newTotal);
+  }, [cartItems]);
 
-  const mennyisegModositas = (id, noveles) => {
-    setTermekek(termekek.map(termek => {
-      if (termek.id === id) {
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsLoggedIn(true);
+        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
+      }
+    };
+    checkLoginStatus();
+  }, []);
+
+  const handleQuantityChange = (id, increase) => {
+    const updatedItems = cartItems.map(item => {
+      if (item.id === id) {
         return {
-          ...termek,
-          mennyiseg: noveles 
-            ? termek.mennyiseg + 1 
-            : Math.max(0, termek.mennyiseg - 1)
+          ...item,
+          mennyiseg: increase ? item.mennyiseg + 1 : Math.max(1, item.mennyiseg - 1)
         };
       }
-      return termek;
-    }));
+      return item;
+    });
+    setCartItems(updatedItems);
+    localStorage.setItem('cartItems', JSON.stringify(updatedItems));
   };
 
-  const termekTorles = (id) => {
-    setTermekek(termekek.filter(termek => termek.id !== id));
+  const handleRemoveItem = (id) => {
+    const updatedItems = cartItems.filter(item => item.id !== id);
+    setCartItems(updatedItems);
+    localStorage.setItem('cartItems', JSON.stringify(updatedItems));
   };
+    const handleCheckout = async () => {
+      try {
+        for (const item of cartItems) {
+          const orderData = {
+            termek: item.nev,
+            statusz: 'Új rendelés',
+            mennyiseg: item.mennyiseg,
+            vevo_id: 1,
+            rendeles_id: 1
+          };
 
+          await fetch('http://localhost:5000/orders/create', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(orderData)
+          });
+        }
+
+        setCartItems([]);
+        localStorage.removeItem('cartItems');
+        alert('Rendelés leadva!');
+        navigate('/vinted');
+      } catch (error) {
+        alert('Hiba történt!');
+      }
+    };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
@@ -99,27 +143,10 @@ export default function Kosar() {
   const toggleSideMenu = () => {
     setSideMenuActive((prev) => !prev);
   };
-  
-  useEffect(() => {
-    if (sideMenuActive) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = 'auto';
-    }
-  }, [sideMenuActive]);
-  
 
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
-      }
-    };
-    checkLoginStatus();
-  }, []);
+  const handleCartClick = () => {
+    navigate('/kosar');
+  };
 
   return (
     <div style={{
@@ -138,7 +165,7 @@ export default function Kosar() {
         boxSizing: 'border-box',
       }}>
         <IconButton
-          onClick={() => setSideMenuActive(!sideMenuActive)}
+          onClick={toggleSideMenu}
           style={{ color: darkMode ? 'white' : 'white' }}
         >
           <MenuIcon />
@@ -158,37 +185,32 @@ export default function Kosar() {
         >
           Adali Clothing
         </Typography>
-        <Box
-  sx={{
-    position: 'fixed',
-    top: 0,
-    left: sideMenuActive ? 0 : '-250px',
-    width: '250px',
-    height: '100%',
-    backgroundColor: '#fff',
-    boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
-    zIndex: 1200,
-    transition: 'left 0.1s ease-in-out',
-  }}
->
-  <IconButton
-    onClick={toggleSideMenu}
-    sx={{
-      position: 'absolute',
-      zIndex: 1300,
-      top: '10px',
-      right: '10px',
-    }}
-  >
-    <CloseIcon />
-  </IconButton>
-  <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
-</Box>
+
         <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
           {isLoggedIn ? (
             <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-             
-
+              <IconButton
+                onClick={handleCartClick}
+                sx={{
+                  color: '#fff',
+                  '&:hover': {
+                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                  }
+                }}
+              >
+                <Badge 
+                  badgeContent={cartItemCount} 
+                  color="primary"
+                  sx={{ 
+                    '& .MuiBadge-badge': { 
+                      backgroundColor: '#fff', 
+                      color: '#333' 
+                    } 
+                  }}
+                >
+                  <ShoppingCartIcon />
+                </Badge>
+              </IconButton>
               <Button
                 ref={anchorRef}
                 onClick={handleToggle}
@@ -268,7 +290,19 @@ export default function Kosar() {
             </>
           )}
         </Box>
-      </div>
+      </div>      <Box sx={{
+        position: 'fixed',
+        top: 0,
+        left: sideMenuActive ? 0 : '-250px',
+        width: '250px',
+        height: '100%',
+        backgroundColor: '#fff',
+        boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
+        zIndex: 1200,
+        transition: 'left 0.1s ease-in-out',
+      }}>
+        <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
+      </Box>
 
       <FormGroup sx={{ position: 'absolute', top: 60, right: 20 }}>
         <FormControlLabel
@@ -290,34 +324,43 @@ export default function Kosar() {
 
         <Grid container spacing={3}>
           <Grid item xs={12} md={8}>
-            {termekek.map((termek) => (
-              <Card key={termek.id} sx={{ 
+            {cartItems.map((item) => (
+              <Card key={item.id} sx={{ 
                 mb: 2,
                 backgroundColor: darkMode ? '#333' : '#fff',
                 color: darkMode ? 'white' : 'black'
               }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography variant="h6">{termek.nev}</Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                      <img 
+                        src={item.imageUrl} 
+                        alt={item.nev} 
+                        style={{ width: 100, height: 100, objectFit: 'contain' }}
+                      />
+                      <Typography variant="h6">{item.nev}</Typography>
+                    </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                       <IconButton 
-                        onClick={() => mennyisegModositas(termek.id, false)}
+                        onClick={() => handleQuantityChange(item.id, false)}
                         size="small"
+                        sx={{ color: darkMode ? 'white' : 'inherit' }}
                       >
                         <RemoveIcon />
                       </IconButton>
-                      <Typography>{termek.mennyiseg}</Typography>
+                      <Typography>{item.mennyiseg}</Typography>
                       <IconButton 
-                        onClick={() => mennyisegModositas(termek.id, true)}
+                        onClick={() => handleQuantityChange(item.id, true)}
                         size="small"
+                        sx={{ color: darkMode ? 'white' : 'inherit' }}
                       >
                         <AddIcon />
                       </IconButton>
                       <Typography sx={{ minWidth: 100 }}>
-                        {(termek.ar * termek.mennyiseg).toLocaleString()} Ft
+                        {(item.ar * item.mennyiseg).toLocaleString()} Ft
                       </Typography>
                       <IconButton 
-                        onClick={() => termekTorles(termek.id)}
+                        onClick={() => handleRemoveItem(item.id)}
                         color="error"
                       >
                         <DeleteIcon />
@@ -341,7 +384,7 @@ export default function Kosar() {
                 <Divider sx={{ my: 2 }} />
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                   <Typography>Részösszeg:</Typography>
-                  <Typography>{osszesAr.toLocaleString()} Ft</Typography>
+                  <Typography>{totalPrice.toLocaleString()} Ft</Typography>
                 </Box>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                   <Typography>Szállítási költség:</Typography>
@@ -351,14 +394,21 @@ export default function Kosar() {
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
                   <Typography variant="h6">Végösszeg:</Typography>
                   <Typography variant="h6">
-                    {(osszesAr + 1590).toLocaleString()} Ft
+                    {(totalPrice + 1590).toLocaleString()} Ft
                   </Typography>
                 </Box>
                 <Button 
                   variant="contained" 
                   fullWidth 
                   size="large"
-                  sx={{ mt: 2 }}
+                  onClick={handleCheckout}
+                  sx={{ 
+                    mt: 2,
+                    backgroundColor: darkMode ? '#555' : 'primary.main',
+                    '&:hover': {
+                      backgroundColor: darkMode ? '#666' : 'primary.dark',
+                    }
+                  }}
                 >
                   Megrendelés
                 </Button>
@@ -370,3 +420,4 @@ export default function Kosar() {
     </div>
   );
 }
+

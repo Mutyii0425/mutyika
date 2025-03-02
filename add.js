@@ -16,6 +16,7 @@ import {
   ClickAwayListener,
   MenuList,
   MenuItem,
+  Badge
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -28,6 +29,9 @@ import FormControl from '@mui/material/FormControl';
 import InputLabel from '@mui/material/InputLabel';
 
 function Add() {
+ 
+const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 0);
   const [title, setTitle] = useState('');
   const [price, setPrice] = useState('');
   const [description, setDescription] = useState('');
@@ -80,6 +84,7 @@ function Add() {
   const [userName, setUserName] = useState('');
   const fileInputRef = React.useRef(null);
   const anchorRef = React.useRef(null);
+  
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -188,6 +193,7 @@ const handleImageUpload = (event) => {
   const toggleSideMenu = () => {
     setSideMenuActive((prev) => !prev);
   };
+  
 
   return (
     <div style={{
@@ -238,7 +244,18 @@ const handleImageUpload = (event) => {
                   }
                 }}
               >
-                <ShoppingCartIcon />
+                <Badge 
+                  badgeContent={cartItemCount} 
+                  color="primary"
+                  sx={{ 
+                    '& .MuiBadge-badge': { 
+                      backgroundColor: '#fff', 
+                      color: '#333' 
+                    } 
+                  }}
+                >
+                  <ShoppingCartIcon />
+                </Badge>
               </IconButton>
               <Button
                 ref={anchorRef}

@@ -1,14 +1,15 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { 
-  Box, 
+
+import React, { useState, useEffect } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
+import {
   Container,
+  Box,
   Typography,
-  Grid,
+  Button,
   Card,
   CardMedia,
   CardContent,
   IconButton,
-  Button,
   FormGroup,
   FormControlLabel,
   Switch,
@@ -17,63 +18,57 @@ import {
   Paper,
   ClickAwayListener,
   MenuList,
-  Badge,
   MenuItem
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Menu from './menu2';
-import { useNavigate } from 'react-router-dom';
 
-export default function Vinted() {
+export default function ProductDetail() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState('');
-  const [products, setProducts] = useState([]);
-  const [selectedCategory, setSelectedCategory] = useState(null);
-  const [categories, setCategories] = useState([]);
-  const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
-  const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 0);
-  const anchorRef = useRef(null);
-  const navigate = useNavigate();
-  useEffect(() => {
-    const fetchCategories = async () => {
-      const response = await fetch('http://localhost:5000/categories');
-      const data = await response.json();
-      setCategories(data);
-    };
-    fetchCategories();
-  }, []);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const anchorRef = React.useRef(null);
 
   useEffect(() => {
-    const handleKeyPress = (event) => {
-      if (event.ctrlKey && event.shiftKey && event.key === 'Q') {
-        navigate('/user');
-      }
-    };
-    window.addEventListener('keydown', handleKeyPress);
-    return () => window.removeEventListener('keydown', handleKeyPress);
-  }, [navigate]);
-
-  useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchProduct = async () => {
+      setLoading(true);
       try {
-        const response = await fetch('http://localhost:5000/products');
+        console.log('Fetching product ID:', id);
+        const response = await fetch(`http://localhost:5000/products/${id}`);
+        if (!response.ok) throw new Error('Network response was not ok');
         const data = await response.json();
-        setProducts(data);
+        console.log('Product data received:', data);
+        setProduct(data);
       } catch (error) {
-        console.log('Hiba a termékek betöltésekor:', error);
+        console.error('Error:', error);
+        setError(error.message);
+      } finally {
+        setLoading(false);
       }
     };
-    fetchProducts();
-  }, []);
+    fetchProduct();
+  }, [id]);
 
-  const filteredProducts = selectedCategory
-    ? products.filter(product => product.kategoriaId === selectedCategory)
-    : products;
+  useEffect(() => {
+    const checkLoginStatus = () => {
+      const userData = localStorage.getItem('user');
+      if (userData) {
+        const user = JSON.parse(userData);
+        setIsLoggedIn(true);
+        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
+      }
+    };
+    checkLoginStatus();
+  }, []);
 
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
@@ -109,18 +104,31 @@ export default function Vinted() {
   const handleCartClick = () => {
     navigate('/kosar');
   };
-
-  useEffect(() => {
-    const checkLoginStatus = () => {
+    const addToCart = () => {
       const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
+      if (!userData) {
+        navigate('/sign');
+        return;
       }
+
+      const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+      const existingItem = cartItems.find(item => item.id === product.id);
+
+      if (existingItem) {
+        existingItem.mennyiseg += 1;
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+      } else {
+        const newItem = {
+          ...product,
+          mennyiseg: 1
+        };
+        cartItems.push(newItem);
+        localStorage.setItem('cartItems', JSON.stringify(cartItems));
+      }
+
+      navigate('/kosar');
     };
-    checkLoginStatus();
-  }, []);
+  if (!product) return <div>Loading...</div>;
 
   return (
     <div style={{
@@ -172,18 +180,7 @@ export default function Vinted() {
                   }
                 }}
               >
-                <Badge 
-                  badgeContent={cartItemCount} 
-                  color="primary"
-                  sx={{ 
-                    '& .MuiBadge-badge': { 
-                      backgroundColor: '#fff', 
-                      color: '#333' 
-                    } 
-                  }}
-                >
-                  <ShoppingCartIcon />
-                </Badge>
+                <ShoppingCartIcon />
               </IconButton>
               <Button
                 ref={anchorRef}
@@ -293,94 +290,59 @@ export default function Vinted() {
         />
       </FormGroup>
 
-      <Container maxWidth="xl" sx={{ mt: 8, mb: 4 }}>
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', color: darkMode ? 'white' : 'black' }}>
-          Feltöltött Termékek
-        </Typography>
-
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          gap: 2, 
-          mb: 4, 
-          flexWrap: 'wrap',
-          marginTop: '20px'
+      <Container maxWidth="lg" sx={{ mt: 8, mb: 4 }}>
+        <Card sx={{ 
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          backgroundColor: darkMode ? '#333' : 'white',
+          color: darkMode ? 'white' : 'black',
         }}>
-          <Button 
-            variant="contained"
-            onClick={() => setSelectedCategory(null)}
+          <CardMedia
+            component="img"
             sx={{ 
-              backgroundColor: !selectedCategory ? '#333' : '#555',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: !selectedCategory ? '#444' : '#666',
-              }
+              width: { md: '50%' },
+              height: '600px',
+              objectFit: 'contain'
             }}
-          >
-            Összes
-          </Button>
-          {categories.map((category) => (
-            <Button
-              key={category.cs_azonosito}
-              variant="contained"
-              onClick={() => setSelectedCategory(category.cs_azonosito)}
-              sx={{ 
-                backgroundColor: selectedCategory === category.cs_azonosito ? '#333' : '#555',
-                color: 'white',
-                '&:hover': {
-                  backgroundColor: selectedCategory === category.cs_azonosito ? '#444' : '#666',
-                }
-              }}
-            >
-              {category.cs_nev}
-            </Button>
-          ))}
-        </Box>
+            image={product.imageUrl}
+            alt={product.nev}
+          />
+          <CardContent sx={{ 
+            width: { md: '50%' },
+            p: 4,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
+          }}>
+            <Typography variant="h4" component="h1">
+              {product.nev}
+            </Typography>
+            <Typography variant="h5" color="primary">
+              {product.ar} Ft
+            </Typography>
+            <Typography variant="body1">
+              {product.leiras}
+            </Typography>
+            <Typography variant="body1">
+              Méret: {product.meret}
+            </Typography>
+            <Button 
+  variant="contained" 
+  size="large"
+  onClick={addToCart}
+  sx={{ 
+    mt: 'auto',
+    backgroundColor: darkMode ? '#555' : 'primary.main',
+    '&:hover': {
+      backgroundColor: darkMode ? '#666' : 'primary.dark',
+    }
+  }}
+>
+  Kosárba
+</Button>
 
-        <Grid container spacing={3}>
-          {filteredProducts.map((product) => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={product.id}>
-              <Link to={`/product/${product.id}`} style={{ textDecoration: 'none' }}>
-                <Card sx={{ 
-                  height: '500px',
-                  backgroundColor: darkMode ? '#333' : 'white',
-                  color: darkMode ? 'white' : 'black',
-                  transition: 'transform 0.2s',
-                  '&:hover': {
-                    transform: 'scale(1.02)'
-                  }
-                }}>
-                  <Box sx={{ position: 'relative', height: '350px' }}>
-                    <CardMedia
-                      component="img"
-                      sx={{ 
-                        height: '100%',
-                        width: '100%',
-                        objectFit: 'contain'
-                      }}
-                      image={product.imageUrl}
-                      alt={product.nev}
-                    />
-                  </Box>
-                  <CardContent>
-                    <Typography variant="h6" color={darkMode ? 'white' : 'black'}>
-                      {product.nev}
-                    </Typography>
-                    <Typography variant="h6" color="primary">
-                      {product.ar} Ft
-                    </Typography>
-                    <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
-                      {product.leiras}
-                    </Typography>
-                    <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
-                      Méret: {product.meret}
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Link>
-            </Grid>
-          ))}
-        </Grid>
+          </CardContent>
+        </Card>
       </Container>
     </div>
   );

@@ -1,33 +1,20 @@
-import React, { useState, useEffect, useRef } from "react";
-import { Box, AppBar, Toolbar, Typography, IconButton, CircularProgress, Grid, Card, CardContent } from "@mui/material";
+import React, { useState, useEffect } from "react";
+import { Box, AppBar, Toolbar, Typography, IconButton, CircularProgress, Grid, Card, CardContent, Badge } from "@mui/material";
 import MenuIcon from "@mui/icons-material/Menu";
 import CloseIcon from "@mui/icons-material/Close";
-import Menu from './menu3';
-import { Link } from 'react-router-dom';
-import { Button } from '@mui/material';
+import Menu from "./menu3"; // Menu komponens importálása
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
-import { useNavigate } from 'react-router-dom';
-import {
-  Popper,
-  Grow,
-  Paper,
-  ClickAwayListener,
-  MenuList,
-  MenuItem,
-} from '@mui/material';
+
 
 const Oterm = () => {
-  const [sideMenuOpen, setSideMenuOpen] = useState(false);
+  const [sideMenuOpen, setSideMenuOpen] = useState(false); // Állapot a menü nyitottságához
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [darkMode, setDarkMode] = useState(true);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [open, setOpen] = useState(false);
-  const anchorRef = useRef(null);
-  const navigate = useNavigate();
-  const [userName, setUserName] = useState('');
+  const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 0);
 
   useEffect(() => {
+    // Dummy data for local testing
     const dummyProducts = [
       { azonosito: 1, nev: "Termék 1", termekleiras: "Ez egy minta termék.", ar: 5000 },
       { azonosito: 2, nev: "Termék 2", termekleiras: "Ez egy másik minta termék.", ar: 7500 },
@@ -38,202 +25,84 @@ const Oterm = () => {
     }, 1000);
   }, []);
 
+  // Függvény a menü ki- és bekapcsolásához
   const toggleSideMenu = () => {
     setSideMenuOpen(!sideMenuOpen);
   };
-
   const handleCartClick = () => {
     navigate('/kosar');
   };
 
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
-
-  const handleClose = (event = {}) => {
-    if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-    setOpen(false);
-  };
-
-  const handleListKeyDown = (event) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
-      setOpen(false);
-    } else if (event.key === 'Escape') {
-      setOpen(false);
-    }
-  };
-
-  const handleLogout = () => {
-    localStorage.removeItem('user');
-    setIsLoggedIn(false);
-    setOpen(false);
-    navigate('/sign');
-  };
-
-  useEffect(() => {
-    const checkLoginStatus = () => {
-      const userData = localStorage.getItem('user');
-      if (userData) {
-        const user = JSON.parse(userData);
-        setIsLoggedIn(true);
-        setUserName(user.username || user.felhasznalonev || 'Felhasználó');
-      }
-    };
-    checkLoginStatus();
-  }, []);
-
   return (
     <Box sx={{ backgroundColor: "#f5f5f5", minHeight: "100vh" }}>
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: darkMode ? '#333' : '#333',
-        padding: '10px 20px',
-        position: 'relative',
-        width: '100%',
-        boxSizing: 'border-box',
-      }}>
+      {/* Header */}
+      <AppBar position="fixed" sx={{ backgroundColor: "#333" }}>
+        <Toolbar>
         <IconButton
-          onClick={toggleSideMenu}
-          style={{ color: darkMode ? 'white' : 'white' }}
-        >
-          <MenuIcon />
-        </IconButton>
+  onClick={handleCartClick}
+  sx={{
+    color: '#fff',
+    '&:hover': {
+      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+    }
+  }}
+>
+  <Badge 
+    badgeContent={cartItemCount} 
+    color="primary"
+    sx={{ 
+      '& .MuiBadge-badge': { 
+        backgroundColor: '#fff', 
+        color: '#333' 
+      } 
+    }}
+  >
+    <ShoppingCartIcon />
+  </Badge>
+</IconButton>
 
-        <Typography
-          variant="h1"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontWeight: 'bold',
-            fontSize: '2rem',
-            color: darkMode ? 'white' : 'white',
-            margin: 0,
-          }}
-        >
-          Adali Clothing
-        </Typography>
+          <Typography variant="h4" sx={{ flexGrow: 1, textAlign: "center" }}>
+            Adali Clothing
+          </Typography>
+        </Toolbar>
+      </AppBar>
 
-        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {isLoggedIn ? (
-            <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <IconButton
-                onClick={handleCartClick}
-                sx={{
-                  color: '#fff',
-                  '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
-                  }
-                }}
-              >
-                <ShoppingCartIcon />
-              </IconButton>
-              <Button
-                ref={anchorRef}
-                onClick={handleToggle}
-                sx={{
-                  color: '#fff',
-                  zIndex: 1300,
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                }}
-              >
-                Profil
-              </Button>
-              <Popper
-                open={open}
-                anchorEl={anchorRef.current}
-                placement="bottom-start"
-                transition
-                disablePortal
-                sx={{ zIndex: 1300 }}
-              >
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin:
-                        placement === 'bottom-start' ? 'left top' : 'left bottom',
-                    }}
-                  >
-                    <Paper>
-                      <ClickAwayListener onClickAway={handleClose}>
-                        <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
-                          <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
-                          <MenuItem onClick={handleClose}>Fiókom</MenuItem>
-                          <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
-                        </MenuList>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
-            </Box>
-          ) : (
-            <>
-              <Button
-                component={Link}
-                to="/sign"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                component={Link}
-                to="/signup"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-        </Box>
-      </div>
-
+      {/* Side Menu */}
       <Box
         sx={{
           position: "fixed",
           top: 0,
-          left: sideMenuOpen ? 0 : "-250px",
+          left: sideMenuOpen ? 0 : "-250px", // Állítsuk be a menü eltolódását
           width: "250px",
           height: "100vh",
           backgroundColor: "#fff",
-          transition: "left 0.1s ease-in-out",
-          zIndex: 1200,
+          transition: "left 0.1s ease-in-out", // Animációt alkalmazunk
+          zIndex: 1200, // Drawer fölé helyezés
         }}
       >
         <Box sx={{ width: 250, padding: 2 }}>
           <IconButton onClick={toggleSideMenu} sx={{ mb: 2 }}>
             <CloseIcon />
           </IconButton>
+          {/* Itt jelenik meg a menu3 komponens */}
           <Menu sideMenuOpen={sideMenuOpen} toggleSideMenu={toggleSideMenu} />
         </Box>
       </Box>
 
+      {/* Hero Section */}
+      <Box
+        sx={{
+          backgroundColor: "#f5f5f5",
+          textAlign: "center",
+          padding: "100px 20px 20px",
+        }}
+      >
+        <Typography variant="h3" gutterBottom>
+          Összes Termékünk
+        </Typography>
+      </Box>
+
+      {/* Product List */}
       <Box sx={{ padding: 2 }}>
         {loading ? (
           <Box sx={{ textAlign: "center", marginTop: 4 }}>
@@ -279,14 +148,15 @@ const Oterm = () => {
         )}
       </Box>
 
+      {/* Footer */}
       <Box
         sx={{
           backgroundColor: "#333",
           color: "white",
           textAlign: "center",
           padding: "10px 0",
-          position: "fixed",
-          bottom: 0,
+          position: "fixed",  // Az aljára rögzítjük
+          bottom: 0,         // Az alján lesz
           left: 0,
           right: 0
         }}
@@ -300,3 +170,4 @@ const Oterm = () => {
 };
 
 export default Oterm;
+
