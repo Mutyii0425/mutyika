@@ -42,66 +42,83 @@ app.get('/products', (req, res) => {
     res.json(results);
   });
 });
-
-// Új termék mentése
 app.post('/usertermekek', (req, res) => {
-  const { kategoriaId, ar, nev, leiras, meret, imageUrl } = req.body;
+  const { kategoriaId, ar, nev, leiras, meret, imageUrl, images } = req.body;
   
-  console.log('Beérkezett adatok:', {
-    kategoriaId,
-    ar,
-    nev,
-    leiras,
-    meret,
-    imageUrl: imageUrl ? 'Kép megérkezett' : 'Nincs kép'
-  });
-
   const query = `
     INSERT INTO usertermekek 
-    (kategoriaId, ar, nev, leiras, meret, imageUrl) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    (kategoriaId, ar, nev, leiras, meret, imageUrl, images) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   
-  db.query(query, [kategoriaId, ar, nev, leiras, meret, imageUrl], (err, result) => {
+  db.query(query, [
+    kategoriaId, 
+    ar, 
+    nev, 
+    leiras, 
+    meret,
+    imageUrl,
+    JSON.stringify(images)
+  ], (err, result) => {
     if (err) {
-      console.log('SQL hiba:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json({ 
-      success: true, 
-      id: result.insertId,
-      message: 'Termék sikeresen mentve' 
-    });
+    res.json({ success: true, id: result.insertId });
   });
 });
+  // Módosított GET endpoint a termék lekéréséhez
+  app.get('/products/:id', (req, res) => {
+    const query = 'SELECT * FROM usertermekek WHERE id = ?';
+    db.query(query, [req.params.id], (err, results) => {
+      if (err) {
+        console.log('Database error:', err);
+        res.status(500).json({ error: 'Database error' });
+        return;
+      }
+    
+      const product = results[0];
+      if (product && product.additionalImages) {
+        try {
+          product.additionalImages = JSON.parse(product.additionalImages);
+        } catch (e) {
+          product.additionalImages = [];
+        }
+      }
+    
+      res.json(product);
+    });
+  });
 
-app.delete('/products/:id', (req, res) => {
-  const productId = req.params.id;
+  app.delete('/products/:id', (req, res) => {
+    const productId = req.params.id;
   
-  const query = 'DELETE FROM usertermekek WHERE id = ?';
+    const query = 'DELETE FROM usertermekek WHERE id = ?';
   
-  db.query(query, [productId], (err, result) => {
-    if (err) {
-      console.log('Hiba a termék törlésénél:', err);
-      res.status(500).json({ error: 'Hiba a törlés során' });
-      return;
-    }
-    res.json({ message: 'Termék sikeresen törölve' });
+    db.query(query, [productId], (err, result) => {
+      if (err) {
+        console.log('Hiba a termék törlésénél:', err);
+        res.status(500).json({ error: 'Hiba a törlés során' });
+        return;
+      }
+      res.json({ message: 'Termék sikeresen törölve' });
   });
 });
 
 app.get('/products/:id', (req, res) => {
-  console.log('Requested product ID:', req.params.id);
   const query = 'SELECT * FROM usertermekek WHERE id = ?';
   db.query(query, [req.params.id], (err, results) => {
-    console.log('Query results:', results);
     if (err) {
-      console.log('Database error:', err);
       res.status(500).json({ error: 'Database error' });
       return;
     }
-    res.json(results[0]);
+    
+    const product = results[0];
+    if (product && product.images) {
+      product.images = JSON.parse(product.images);
+    }
+    
+    res.json(product);
   });
 });
 
@@ -133,6 +150,5 @@ const port = 5000;
 app.listen(port, () => {
   console.log(`Server fut a ${port} porton`);
 });
-
 
 

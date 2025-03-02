@@ -18,7 +18,8 @@ import {
   Paper,
   ClickAwayListener,
   MenuList,
-  MenuItem
+  MenuItem,
+  Grid,
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -29,6 +30,7 @@ export default function ProductDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
   const [product, setProduct] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,27 +39,32 @@ export default function ProductDetail() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const anchorRef = React.useRef(null);
-
-  useEffect(() => {
-    const fetchProduct = async () => {
-      setLoading(true);
-      try {
-        console.log('Fetching product ID:', id);
-        const response = await fetch(`http://localhost:5000/products/${id}`);
-        if (!response.ok) throw new Error('Network response was not ok');
-        const data = await response.json();
-        console.log('Product data received:', data);
-        setProduct(data);
-      } catch (error) {
-        console.error('Error:', error);
-        setError(error.message);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchProduct();
-  }, [id]);
-
+  const [mainImage, setMainImage] = useState('');
+  const [additionalImages, setAdditionalImages] = useState([]);
+    useEffect(() => {
+      const fetchProduct = async () => {
+        try {
+          const response = await fetch(`http://localhost:5000/products/${id}`);
+          const data = await response.json();
+          console.log('Received data:', data);
+          
+          let imagesArray = [];
+          try {
+            imagesArray = data.images ? JSON.parse(data.images) : [];
+          } catch (e) {
+            console.log('Images parsing failed, using empty array');
+          }
+          
+          setProduct({
+            ...data,
+            images: imagesArray
+          });
+        } catch (error) {
+          console.error('Error:', error);
+        }
+      };
+      fetchProduct();
+    }, [id]);
   useEffect(() => {
     const checkLoginStatus = () => {
       const userData = localStorage.getItem('user');
@@ -129,221 +136,312 @@ export default function ProductDetail() {
       navigate('/kosar');
     };
   if (!product) return <div>Loading...</div>;
-
-  return (
-    <div style={{
-      backgroundColor: darkMode ? '#555' : '#f5f5f5',
-      color: darkMode ? 'white' : 'black',
-      minHeight: '100vh',
-    }}>
+    return (
       <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        backgroundColor: darkMode ? '#333' : '#333',
-        padding: '10px 20px',
-        position: 'relative',
-        width: '100%',
-        boxSizing: 'border-box',
+        backgroundColor: darkMode ? '#555' : '#f5f5f5',
+        color: darkMode ? 'white' : 'black',
+        minHeight: '100vh',
       }}>
-        <IconButton
-          onClick={toggleSideMenu}
-          style={{ color: darkMode ? 'white' : 'white' }}
-        >
-          <MenuIcon />
-        </IconButton>
+        <div style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: darkMode ? '#333' : '#333',
+          padding: '10px 20px',
+          position: 'relative',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}>
+          <IconButton
+            onClick={toggleSideMenu}
+            style={{ color: darkMode ? 'white' : 'white' }}
+          >
+            <MenuIcon />
+          </IconButton>
 
-        <Typography
-          variant="h1"
-          style={{
-            position: 'absolute',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            fontWeight: 'bold',
-            fontSize: '2rem',
-            color: darkMode ? 'white' : 'white',
-            margin: 0,
-          }}
-        >
-          Adali Clothing
-        </Typography>
+          <Typography
+            variant="h1"
+            style={{
+              position: 'absolute',
+              left: '50%',
+              transform: 'translateX(-50%)',
+              fontWeight: 'bold',
+              fontSize: '2rem',
+              color: darkMode ? 'white' : 'white',
+              margin: 0,
+            }}
+          >
+            Adali Clothing
+          </Typography>
 
-        <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-          {isLoggedIn ? (
-            <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
-              <IconButton
-                onClick={handleCartClick}
-                sx={{
-                  color: '#fff',
+          <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+            {isLoggedIn ? (
+              <Box sx={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <IconButton
+                  onClick={handleCartClick}
+                  sx={{
+                    color: '#fff',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    }
+                  }}
+                >
+                  <ShoppingCartIcon />
+                </IconButton>
+                <Button
+                  ref={anchorRef}
+                  onClick={handleToggle}
+                  sx={{
+                    color: '#fff',
+                    zIndex: 1300,
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                  }}
+                >
+                  Profil
+                </Button>
+                <Popper
+                  open={open}
+                  anchorEl={anchorRef.current}
+                  placement="bottom-start"
+                  transition
+                  disablePortal
+                  sx={{ zIndex: 1300 }}
+                >
+                  {({ TransitionProps, placement }) => (
+                    <Grow
+                      {...TransitionProps}
+                      style={{
+                        transformOrigin:
+                          placement === 'bottom-start' ? 'left top' : 'left bottom',
+                      }}
+                    >
+                      <Paper>
+                        <ClickAwayListener onClickAway={handleClose}>
+                          <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
+                            <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
+                            <MenuItem onClick={handleClose}>Fiókom</MenuItem>
+                            <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
+                          </MenuList>
+                        </ClickAwayListener>
+                      </Paper>
+                    </Grow>
+                  )}
+                </Popper>
+              </Box>
+            ) : (
+              <>
+                <Button
+                  component={Link}
+                  to="/sign"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign In
+                </Button>
+                <Button
+                  component={Link}
+                  to="/signup"
+                  sx={{
+                    color: '#fff',
+                    border: '1px solid #fff',
+                    borderRadius: '5px',
+                    padding: '5px 10px',
+                    '&:hover': {
+                      backgroundColor: '#fff',
+                      color: '#333',
+                    },
+                  }}
+                >
+                  Sign Up
+                </Button>
+              </>
+            )}
+          </Box>
+        </div>
+
+        <Box sx={{
+          position: 'fixed',
+          top: 0,
+          left: sideMenuActive ? 0 : '-250px',
+          width: '250px',
+          height: '100%',
+          backgroundColor: '#fff',
+          boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 1200,
+          transition: 'left 0.1s ease-in-out',
+        }}>
+          <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
+        </Box>
+
+        <FormGroup sx={{ position: 'absolute', top: 60, right: 20 }}>
+          <FormControlLabel
+            control={
+              <Switch
+                color="default"
+                checked={darkMode}
+                onChange={() => setDarkMode((prev) => !prev)}
+              />
+            }
+            label="Dark Mode"
+          />
+        </FormGroup>
+        <Container maxWidth="lg" sx={{ mt: 8, mb: 4 }}>
+          <Card sx={{ 
+            display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
+            backgroundColor: darkMode ? '#333' : 'white',
+            color: darkMode ? 'white' : 'black',
+            borderRadius: '16px',
+            overflow: 'hidden',
+            boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
+          }}>
+            <Box sx={{ 
+              flex: '1.5',
+              p: 3,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3
+            }}>
+              {/* Main Image Display */}
+              <Box sx={{
+                width: '100%',
+                height: '500px',
+                borderRadius: '12px',
+                overflow: 'hidden',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+              }}>
+                <img
+                  src={selectedImage || product.imageUrl}
+                  alt={product.nev}
+                  style={{
+                    width: '100%',
+                    height: '100%',
+                    objectFit: 'contain'
+                  }}
+                />
+              </Box>
+
+              {/* Thumbnail Images */}
+              <Grid container spacing={2}>
+                <Grid item xs={3}>
+                  <Box sx={{
+                    height: '150px',
+                    borderRadius: '8px',
+                    overflow: 'hidden',
+                    cursor: 'pointer',
+                    '&:hover': { opacity: 0.8 }
+                  }}
+                  onClick={() => setSelectedImage(product.imageUrl)}
+                  >
+                    <img
+                      src={product.imageUrl}
+                      alt={product.nev}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        objectFit: 'contain'
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                {Array.isArray(product?.images) && product.images.map((img, index) => (
+                  <Grid item xs={3} key={index}>
+                    <Box sx={{
+                      height: '150px',
+                      borderRadius: '8px',
+                      overflow: 'hidden',
+                      cursor: 'pointer',
+                      '&:hover': { opacity: 0.8 }
+                    }}
+                    onClick={() => setSelectedImage(img)}
+                    >
+                      <img
+                        src={img}
+                        alt={`${product.nev} - ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'contain'
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Box>
+
+            {/* Product Info Section */}
+            <Box sx={{ 
+              flex: '1',
+              p: 4,
+              backgroundColor: darkMode ? '#444' : '#f8f8f8',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 3
+            }}>
+              <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+                {product.nev}
+              </Typography>
+              
+              <Typography variant="h5" sx={{ 
+                color: darkMode ? '#90caf9' : '#1976d2',
+                fontWeight: 'bold'
+              }}>
+                {product.ar} Ft
+              </Typography>
+
+              <Typography variant="body1" sx={{ 
+                backgroundColor: darkMode ? '#333' : '#fff',
+                p: 2,
+                borderRadius: '8px',
+                boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+              }}>
+                {product.leiras}
+              </Typography>
+
+              <Box sx={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: 2,
+                p: 2,
+                backgroundColor: darkMode ? '#333' : '#fff',
+                borderRadius: '8px'
+              }}>
+                <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                  Méret:
+                </Typography>
+                <Typography variant="body1">
+                  {product.meret}
+                </Typography>
+              </Box>
+
+              <Button 
+                variant="contained"
+                onClick={addToCart}
+                sx={{ 
+                  mt: 'auto',
+                  py: 2,
+                  backgroundColor: darkMode ? '#90caf9' : '#1976d2',
                   '&:hover': {
-                    backgroundColor: 'rgba(255, 255, 255, 0.1)',
+                    backgroundColor: darkMode ? '#42a5f5' : '#1565c0',
                   }
                 }}
               >
-                <ShoppingCartIcon />
-              </IconButton>
-              <Button
-                ref={anchorRef}
-                onClick={handleToggle}
-                sx={{
-                  color: '#fff',
-                  zIndex: 1300,
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                }}
-              >
-                Profil
+                Kosárba
               </Button>
-              <Popper
-                open={open}
-                anchorEl={anchorRef.current}
-                placement="bottom-start"
-                transition
-                disablePortal
-                sx={{ zIndex: 1300 }}
-              >
-                {({ TransitionProps, placement }) => (
-                  <Grow
-                    {...TransitionProps}
-                    style={{
-                      transformOrigin:
-                        placement === 'bottom-start' ? 'left top' : 'left bottom',
-                    }}
-                  >
-                    <Paper>
-                      <ClickAwayListener onClickAway={handleClose}>
-                        <MenuList autoFocusItem={open} onKeyDown={handleListKeyDown}>
-                          <MenuItem onClick={handleClose}>{userName} profilja</MenuItem>
-                          <MenuItem onClick={handleClose}>Fiókom</MenuItem>
-                          <MenuItem onClick={handleLogout}>Kijelentkezés</MenuItem>
-                        </MenuList>
-                      </ClickAwayListener>
-                    </Paper>
-                  </Grow>
-                )}
-              </Popper>
             </Box>
-          ) : (
-            <>
-              <Button
-                component={Link}
-                to="/sign"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign In
-              </Button>
-              <Button
-                component={Link}
-                to="/signup"
-                sx={{
-                  color: '#fff',
-                  border: '1px solid #fff',
-                  borderRadius: '5px',
-                  padding: '5px 10px',
-                  '&:hover': {
-                    backgroundColor: '#fff',
-                    color: '#333',
-                  },
-                }}
-              >
-                Sign Up
-              </Button>
-            </>
-          )}
-        </Box>
-      </div>
-
-      <Box sx={{
-        position: 'fixed',
-        top: 0,
-        left: sideMenuActive ? 0 : '-250px',
-        width: '250px',
-        height: '100%',
-        backgroundColor: '#fff',
-        boxShadow: '4px 0px 10px rgba(0, 0, 0, 0.2)',
-        zIndex: 1200,
-        transition: 'left 0.1s ease-in-out',
-      }}>
-        <Menu sideMenuActive={sideMenuActive} toggleSideMenu={toggleSideMenu} />
-      </Box>
-
-      <FormGroup sx={{ position: 'absolute', top: 60, right: 20 }}>
-        <FormControlLabel
-          control={
-            <Switch
-              color="default"
-              checked={darkMode}
-              onChange={() => setDarkMode((prev) => !prev)}
-            />
-          }
-          label="Dark Mode"
-        />
-      </FormGroup>
-
-      <Container maxWidth="lg" sx={{ mt: 8, mb: 4 }}>
-        <Card sx={{ 
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          backgroundColor: darkMode ? '#333' : 'white',
-          color: darkMode ? 'white' : 'black',
-        }}>
-          <CardMedia
-            component="img"
-            sx={{ 
-              width: { md: '50%' },
-              height: '600px',
-              objectFit: 'contain'
-            }}
-            image={product.imageUrl}
-            alt={product.nev}
-          />
-          <CardContent sx={{ 
-            width: { md: '50%' },
-            p: 4,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 3
-          }}>
-            <Typography variant="h4" component="h1">
-              {product.nev}
-            </Typography>
-            <Typography variant="h5" color="primary">
-              {product.ar} Ft
-            </Typography>
-            <Typography variant="body1">
-              {product.leiras}
-            </Typography>
-            <Typography variant="body1">
-              Méret: {product.meret}
-            </Typography>
-            <Button 
-  variant="contained" 
-  size="large"
-  onClick={addToCart}
-  sx={{ 
-    mt: 'auto',
-    backgroundColor: darkMode ? '#555' : 'primary.main',
-    '&:hover': {
-      backgroundColor: darkMode ? '#666' : 'primary.dark',
-    }
-  }}
->
-  Kosárba
-</Button>
-
-          </CardContent>
-        </Card>
-      </Container>
+          </Card>
+        </Container>
     </div>
   );
 }

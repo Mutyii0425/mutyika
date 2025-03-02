@@ -9,6 +9,7 @@ import Kosar from './kosar';
 import Add from './add';
 import Vinted from './vinted';
 import User from './user';
+import ProductDetail from './ProductDetail';
 
 const App = () => {
   return (
@@ -23,6 +24,7 @@ const App = () => {
         <Route path="/add" element={<Add />} />
         <Route path="/vinted" element={<Vinted />} />
         <Route path="/user" element={<User />} />
+        <Route path="/product/:id" element={<ProductDetail />} />
         
       </Routes>
     </Router>

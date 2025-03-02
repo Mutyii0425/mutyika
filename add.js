@@ -16,7 +16,8 @@ import {
   ClickAwayListener,
   MenuList,
   MenuItem,
-  Badge
+  Badge,
+  Grid
 } from '@mui/material';
 import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -43,18 +44,14 @@ const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 
   const navigate = useNavigate();
 
   const handleSubmit = async () => {
-    if (!selectedImage || !title || !price || !description || !size || !selectedCategory) {
-      alert('Kérlek tölts ki minden mezőt és tölts fel képet!');
-      return;
-    }
-
     const productData = {
       kategoriaId: parseInt(selectedCategory),
       ar: parseInt(price),
       nev: title,
       leiras: description, 
       meret: size,
-      imageUrl: selectedImage
+      imageUrl: selectedImages[0],
+      images: selectedImages // Using 'images' instead of 'additionalImages'
     };
 
     try {
@@ -69,15 +66,12 @@ const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 
       if (response.ok) {
         alert('Sikeres feltöltés!');
         navigate('/vinted');
-      } else {
-        throw new Error('Feltöltési hiba');
       }
     } catch (error) {
       console.error('Hiba:', error);
-      alert('Hiba történt a feltöltés során!');
     }
   };
-
+  
   const [categories, setCategories] = useState([]);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [open, setOpen] = useState(false);
@@ -114,69 +108,75 @@ useEffect(() => {
   }
 }, [sideMenuActive]);
 
+const [selectedImages, setSelectedImages] = useState([]);
 
 const handleImageUpload = (event) => {
-  const file = event.target.files[0];
-  if (file) {
+  const files = Array.from(event.target.files);
+  
+  files.forEach(file => {
     const reader = new FileReader();
     reader.onload = () => {
-      // Create an image element to resize
       const img = new Image();
       img.src = reader.result;
       img.onload = () => {
-        // Create canvas
         const canvas = document.createElement('canvas');
         const MAX_WIDTH = 800;
         const scaleSize = MAX_WIDTH / img.width;
         canvas.width = MAX_WIDTH;
         canvas.height = img.height * scaleSize;
         
-        // Draw and compress image
         const ctx = canvas.getContext('2d');
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         const compressedImage = canvas.toDataURL('image/jpeg', 0.7);
-        setSelectedImage(compressedImage);
+        
+        setSelectedImages(prev => [...prev, compressedImage]);
       };
     };
     reader.readAsDataURL(file);
-  }
+  });
+};const handleDragOver = (event) => {
+  event.preventDefault();
 };
 
-  const handleDragOver = (event) => {
-    event.preventDefault();
-  };
-
-  const handleDrop = (event) => {
-    event.preventDefault();
-    const file = event.dataTransfer.files[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        const base64Image = reader.result;
-        setSelectedImage(base64Image);
+const handleDrop = (event) => {
+  event.preventDefault();
+  const file = event.dataTransfer.files[0];
+  if (file) {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64Image = reader.result;
+      setSelectedImage(base64Image);
       };
       reader.readAsDataURL(file);
     }
-  };
+};
 
-  const handleCartClick = () => {
+const handleCartClick = () => {
     navigate('/kosar');
-  };
+};
 
-  const handleToggle = () => {
-    setOpen((prevOpen) => !prevOpen);
-  };
+<input
+    type="file"
+    hidden
+    multiple
+    ref={fileInputRef}
+    onChange={handleImageUpload}
+    accept="image/*"
+/>
+const handleToggle = () => {
+  setOpen((prevOpen) => !prevOpen);
+};
 
-  const handleClose = (event = {}) => {
-    if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
-      return;
-    }
-    setOpen(false);
-  };
+const handleClose = (event = {}) => {
+  if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
+    return;
+  }
+  setOpen(false);
+};
 
-  const handleListKeyDown = (event) => {
-    if (event.key === 'Tab') {
-      event.preventDefault();
+const handleListKeyDown = (event) => {
+  if (event.key === 'Tab') {
+    event.preventDefault();
       setOpen(false);
     } else if (event.key === 'Escape') {
       setOpen(false);
@@ -386,39 +386,54 @@ const handleImageUpload = (event) => {
               mb: 3,
               textAlign: 'center',
               cursor: 'pointer',
-              '&:hover': {
-                borderColor: 'primary.main',
-              },
             }}
             onClick={() => fileInputRef.current.click()}
             onDragOver={handleDragOver}
             onDrop={handleDrop}
           >
-            {selectedImage ? (
-              <img
-                src={selectedImage}
-                alt="Feltöltött kép"
-                style={{
-                  maxWidth: '100%',
-                  maxHeight: '300px',
-                  objectFit: 'contain',
-                }}
-              />
-            ) : (
-              <Box>
-                <CloudUploadIcon sx={{ fontSize: 60, mb: 2 }} />
-                <Typography>
-                  Húzd ide a képet vagy kattints a feltöltéshez
-                </Typography>
-              </Box>
-            )}
             <input
               type="file"
               hidden
+              multiple
               ref={fileInputRef}
               onChange={handleImageUpload}
               accept="image/*"
             />
+            
+            {selectedImages && selectedImages.length > 0 ? (
+              <Grid container spacing={2}>
+                {selectedImages.map((image, index) => (
+                  <Grid item xs={6} sm={4} key={index}>
+                    <Box
+                      sx={{
+                        position: 'relative',
+                        height: '200px',
+                        width: '100%',
+                        borderRadius: '8px',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <img
+                        src={image}
+                        alt={`Feltöltött kép ${index + 1}`}
+                        style={{
+                          width: '100%',
+                          height: '100%',
+                          objectFit: 'cover'
+                        }}
+                      />
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            ) : (
+              <Box>
+                <CloudUploadIcon sx={{ fontSize: 60, mb: 2 }} />
+                <Typography>
+                  Húzd ide a képeket vagy kattints a feltöltéshez
+                </Typography>
+              </Box>
+            )}
           </Box>
             <FormControl fullWidth margin="normal" sx={{ mb: 2 }}>
               <InputLabel sx={{ 
