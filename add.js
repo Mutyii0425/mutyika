@@ -196,11 +196,13 @@ const handleListKeyDown = (event) => {
   
 
   return (
-    <div style={{
-      backgroundColor: darkMode ? '#555' : '#f5f5f5',
-      color: darkMode ? 'white' : 'black',
-      minHeight: '100vh',
-    }}>
+<div style={{
+  backgroundColor: darkMode ? '#555' : '#f5f5f5',
+  color: darkMode ? 'white' : 'black',
+  minHeight: '100vh',
+  paddingBottom: '100px'  // Új sor
+}}>
+
       <div style={{
         display: 'flex',
         alignItems: 'center',

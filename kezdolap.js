@@ -21,11 +21,17 @@ import MenuIcon from '@mui/icons-material/Menu';
 import CloseIcon from '@mui/icons-material/Close';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import logo2 from './logo2.png';
+import fehgatya from './fehgatya.png';
+import fehpolo from './fehpolo.png';
+import fehpull from './fehpull.png';
+import polok from './polok.png';
 import Footer from './footer';
 import Menu from './menu2';
 import { useNavigate } from 'react-router-dom';
 
 const Home = () => {
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const images = [polok];
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -37,7 +43,6 @@ const Home = () => {
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);
   };
-  
 
   const handleClose = (event = {}) => {
     if (event.target && anchorRef.current && anchorRef.current.contains(event.target)) {
@@ -70,6 +75,8 @@ const Home = () => {
     navigate('/kosar');
   };
 
+  
+
   useEffect(() => {
     if (sideMenuActive) {
       document.body.style.overflow = 'hidden';
@@ -88,6 +95,16 @@ const Home = () => {
       }
     };
     checkLoginStatus();
+  }, []);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => 
+        prevIndex === images.length - 1 ? 0 : prevIndex + 1
+      );
+    }, 3000);
+  
+    return () => clearInterval(timer);
   }, []);
 
   return (
@@ -399,101 +416,118 @@ const Home = () => {
             Nézd meg az összes termékünket
           </Typography>
         </div>
-
-        <div
-          style={{
-            flex: '1 1 300px',
-            maxWidth: '600px',
-            textAlign: 'center',
-            borderRadius: '10px',
-            overflow: 'hidden',
-            boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
-            backgroundColor: darkMode ? '#555' : '#fff',
-          }}
-        >
-          <Link to="/add">
           <div
             style={{
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <img
-              src={logo2}
-              alt="Empty"
-              style={{
-                width: '100%',
-                height: '500px',
-                objectFit: 'cover',
-                transition: 'transform 0.3s ease',
-              }}
-              onMouseEnter={(e) => {
-                e.target.style.transform = 'scale(1.1)';
-              }}
-              onMouseLeave={(e) => {
-                e.target.style.transform = 'scale(1)';
-              }}
-            />
-          </div>
-          </Link>
-          <Typography
-            variant="body1"
-            style={{
-              fontSize: '18px',
-              padding: '10px',
+              flex: '1 1 300px',
+              maxWidth: '600px',
               textAlign: 'center',
-              transition: 'transform 0.3s ease',
-              marginTop: '10px',
+              borderRadius: '10px',
+              overflow: 'hidden',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.2)',
+              backgroundColor: darkMode ? '#555' : '#fff',
             }}
           >
-            Töltsd fel a ruháidat
-          </Typography>
+            <Link to="/add">
+              <div
+                style={{
+                  position: 'relative',
+                  overflow: 'hidden',
+                }}
+              >
+                <img
+                  src={logo2}
+                  alt="Upload"
+                  style={{
+                    width: '100%',
+                    height: '500px',
+                    objectFit: 'cover',
+                    transition: 'transform 0.3s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.transform = 'scale(1)';
+                  }}
+                />
+              </div>
+            </Link>
+            <Typography
+              variant="body1"
+              style={{
+                fontSize: '18px',
+                padding: '10px',
+                textAlign: 'center',
+                transition: 'transform 0.3s ease',
+                marginTop: '10px',
+              }}
+            >
+              Töltsd fel a ruháidat
+            </Typography>
+          </div>
         </div>
-      </div>
-
-      <Box 
-        sx={{ 
-          width: '100%',
-          height: '200px',
-          overflow: 'hidden',
-          position: 'relative',
-          marginTop: '50px',
-          backgroundColor: darkMode ? '#444' : '#f0f0f0'
-        }}
-      >
         <Box 
           sx={{ 
+            width: '100%',
+            height: '708px',
+            overflow: 'hidden',
+            position: 'relative',
+            marginTop: '50px',
+            marginBottom: '50px',
+            backgroundColor: darkMode ? '#444' : '#f0f0f0',
             display: 'flex',
-            position: 'absolute',
-            whiteSpace: 'nowrap',
-            animation: 'slideAnimation 20s linear infinite'
+            alignItems: 'center',
+            justifyContent: 'space-between',
+            padding: '0 80px',
+            maxWidth: '1860px',
+            margin: '50px auto',
+           
+            boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
           }}
         >
-          {[...Array(6)].map((_, index) => (
-            <Box 
-              key={index}
-              component="img" 
-              src={logo2} 
-              sx={{ 
-                height: 180, 
-                m: 1,
-                filter: darkMode ? 'brightness(0.8)' : 'none'
-              }} 
-            />
-          ))}
+          <Box
+            component="img"
+            src={polok}
+            sx={{
+              height: '1500px',
+              width: '800px',
+           
+              objectFit: 'contain',
+              animation: 'slideInLeft 1.5s ease-out',
+            }}
+          />
+          <Box
+            sx={{
+              width: '35%',
+              animation: 'slideInRight 1.5s ease-out',
+              textAlign: 'left',
+              padding: '40px'
+            }}
+          >
+            <Typography variant="h2" sx={{ mb: 3, color: darkMode ? 'white' : 'black' }}>
+              Új kollekció érkezett!
+            </Typography>
+            <Typography variant="h4" sx={{ color: darkMode ? 'grey.300' : 'grey.700' }}>
+              Fedezd fel a legújabb pólóinkat és találd meg a stílusodhoz illőt!
+            </Typography>
+          </Box>
+
+          <style>
+            {`
+              @keyframes slideInLeft {
+                from { transform: translateX(-100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+              }
+              @keyframes slideInRight {
+                from { transform: translateX(100%); opacity: 0; }
+                to { transform: translateX(0); opacity: 1; }
+              }
+            `}
+          </style>
         </Box>
-        <style>
-          {`
-            @keyframes slideAnimation {
-              from { transform: translateX(100%); }
-              to { transform: translateX(-100%); }
-            }
-          `}
-        </style>
-      </Box>
-      <Footer />
-    </div>
-  );
+        <Footer />
+      </div>
+    );
 };
 
 export default Home;

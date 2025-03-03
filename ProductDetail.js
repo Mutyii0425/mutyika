@@ -157,6 +157,7 @@ export default function ProductDetail() {
         backgroundColor: darkMode ? '#555' : '#f5f5f5',
         color: darkMode ? 'white' : 'black',
         minHeight: '100vh',
+        paddingBottom: '100px'  // Ez az új sor
       }}>
         <div style={{
           display: 'flex',
@@ -311,7 +312,7 @@ export default function ProductDetail() {
             label="Dark Mode"
           />
         </FormGroup>
-        <Container maxWidth="lg" sx={{ mt: 8, mb: 4 }}>
+        <Container maxWidth="lg" sx={{ mt: 8, mb: 12 }}>
           <Card sx={{ 
             display: 'flex',
             flexDirection: { xs: 'column', md: 'row' },
@@ -495,5 +496,4 @@ export default function ProductDetail() {
     </div>
   );
 }
-
 

@@ -11,6 +11,7 @@ import Vinted from './vinted';
 import User from './user';
 import ProductDetail from './ProductDetail';
 import Shipping from './shipping';
+import Termekeink from './termekeink';
 
 const App = () => {
   return (
@@ -27,6 +28,8 @@ const App = () => {
         <Route path="/user" element={<User />} />
         <Route path="/product/:id" element={<ProductDetail />} />
         <Route path="/shipping" element={< Shipping />} />
+        <Route path="/termek/:id" element={<Termekeink />} />
+
         
       </Routes>
     </Router>

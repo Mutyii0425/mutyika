@@ -1,16 +1,14 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Link } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import {
-  Box,
   Container,
+  Box,
   Typography,
-  Grid,
+  Button,
   Card,
   CardMedia,
   CardContent,
   IconButton,
-  Button,
   FormGroup,
   FormControlLabel,
   Switch,
@@ -18,13 +16,15 @@ import {
   Grow,
   Paper,
   ClickAwayListener,
-  CardActionArea,
   MenuList,
   MenuItem,
-  Badge
+  Grid,
+  Badge,
 } from '@mui/material';
+import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import Footer from './footer';
 import Menu from './menu2';
 import fehgatya from './fehgatya.png';
 import fehpolo from './fehpolo.png';
@@ -42,42 +42,50 @@ import bezsgatya from './bezsgatya.png';
 import bezspolo from './bezspolo.png';
 import bezspull from './bezspull.png';
 
-const Oterm = () => {
+const imageMap = {
+  'fehgatya.png': fehgatya,
+  'fehpolo.png': fehpolo,
+  'fehpull.png': fehpull,
+  'kekgatya.png': kekgatya,
+  'kekpolo.png': kekpolo,
+  'kekpull.png': kekpull,
+  'fekgatya.png': fekgatya,
+  'fekpolo.png': fekpolo,
+  'fekpull.png': fekpull,
+  'zoldgatya.png': zoldgatya,
+  'zoldpolo.png': zoldpolo,
+  'zoldpull.png': zoldpull,
+  'bezsgatya.png': bezsgatya,
+  'bezspolo.png': bezspolo,
+  'bezspull.png': bezspull
+};
+
+export default function TermekReszletek() {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const [product, setProduct] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [open, setOpen] = useState(false);
   const [userName, setUserName] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const anchorRef = useRef(null);
   const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
   const cartItemCount = cartItems.reduce((total, item) => total + item.mennyiseg, 0);
-  const anchorRef = useRef(null);
-  const navigate = useNavigate();
-    const dummyProducts = [
-      { id: 1, nev: "Fehér nadrág", termekleiras: "Kényelmes fehér nadrág", ar: 5000, imageUrl: fehgatya },
-      { id: 2, nev: "Fehér póló", termekleiras: "Klasszikus fehér póló", ar: 3500, imageUrl: fehpolo },
-      { id: 3, nev: "Fehér pulóver", termekleiras: "Meleg fehér pulóver", ar: 7500, imageUrl: fehpull },
-      { id: 4, nev: "Kék nadrág", termekleiras: "Kényelmes kék nadrág", ar: 5000, imageUrl: kekgatya },
-      { id: 5, nev: "Kék póló", termekleiras: "Klasszikus kék póló", ar: 3500, imageUrl: kekpolo },
-      { id: 6, nev: "Kék pulóver", termekleiras: "Meleg kék pulóver", ar: 7500, imageUrl: kekpull },
-      { id: 7, nev: "Fekete nadrág", termekleiras: "Kényelmes fekete nadrág", ar: 5000, imageUrl: fekgatya },
-      { id: 8, nev: "Fekete póló", termekleiras: "Klasszikus fekete póló", ar: 3500, imageUrl: fekpolo },
-      { id: 9, nev: "Fekete pulóver", termekleiras: "Meleg fekete pulóver", ar: 7500, imageUrl: fekpull },
-      { id: 10, nev: "Zöld nadrág", termekleiras: "Kényelmes zöld nadrág", ar: 5000, imageUrl: zoldgatya },
-      { id: 11, nev: "Zöld póló", termekleiras: "Klasszikus zöld póló", ar: 3500, imageUrl: zoldpolo },
-      { id: 12, nev: "Zöld pulóver", termekleiras: "Meleg zöld pulóver", ar: 7500, imageUrl: zoldpull },
-      { id: 13, nev: "Bézs nadrág", termekleiras: "Kényelmes bézs nadrág", ar: 5000, imageUrl: bezsgatya },
-      { id: 14, nev: "Bézs póló", termekleiras: "Klasszikus bézs póló", ar: 3500, imageUrl: bezspolo },
-      { id: 15, nev: "Bézs pulóver", termekleiras: "Meleg bézs pulóver", ar: 7500, imageUrl: bezspull },
-    ];
-  const filteredProducts = selectedCategory 
-    ? dummyProducts.filter(product => {
-        if (selectedCategory === 'Pólók') return product.nev.includes('póló');
-        if (selectedCategory === 'Nadrágok') return product.nev.includes('nadrág');
-        if (selectedCategory === 'Pulóverek') return product.nev.includes('pulóver');
-        return true;
-      })
-    : dummyProducts;
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      try {
+        const response = await fetch(`http://localhost:5000/termekek/${id}`);
+        const data = await response.json();
+        setProduct(data);
+      } catch (error) {
+        console.log('Hiba a termék betöltésekor:', error);
+      }
+    };
+    fetchProduct();
+  }, [id]);
 
   useEffect(() => {
     const checkLoginStatus = () => {
@@ -111,6 +119,8 @@ const Oterm = () => {
     }
   };
 
+  
+
   const handleLogout = () => {
     localStorage.removeItem('user');
     setIsLoggedIn(false);
@@ -125,6 +135,26 @@ const Oterm = () => {
   const handleCartClick = () => {
     navigate('/kosar');
   };
+
+  const handleAddToCart = () => {
+    const cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+    const existingItem = cartItems.find(item => item.id === product.id);
+
+    if (existingItem) {
+      existingItem.mennyiseg += 1;
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    } else {
+      const newItem = {
+        ...product,
+        mennyiseg: 1
+      };
+      cartItems.push(newItem);
+      localStorage.setItem('cartItems', JSON.stringify(cartItems));
+    }
+    navigate('/kosar');
+  };
+
+  if (!product) return <div>Loading...</div>;
 
   return (
     <div style={{
@@ -298,118 +328,109 @@ const Oterm = () => {
         />
       </FormGroup>
 
-      <Container maxWidth="xl" sx={{ mt: 8, mb: 4 }}>
-        <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', color: darkMode ? 'white' : 'black' }}>
-          Összes Termékünk
-        </Typography>
-
-        <Box sx={{ 
-          display: 'flex', 
-          justifyContent: 'center', 
-          gap: 2, 
-          mb: 4, 
-          flexWrap: 'wrap',
-          marginTop: '20px'
+      <Container maxWidth="lg" sx={{ mt: 8, mb: 12 }}>
+        <Card sx={{ 
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          backgroundColor: darkMode ? '#333' : 'white',
+          color: darkMode ? 'white' : 'black',
+          borderRadius: '16px',
+          overflow: 'hidden',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.15)'
         }}>
-          <Button 
-            variant="contained"
-            onClick={() => setSelectedCategory(null)}
-            sx={{ 
-              backgroundColor: !selectedCategory ? '#333' : '#555',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: !selectedCategory ? '#444' : '#666',
-              }
-            }}
-          >
-            Összes
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => setSelectedCategory('Pólók')}
-            sx={{ 
-              backgroundColor: selectedCategory === 'Pólók' ? '#333' : '#555',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: selectedCategory === 'Pólók' ? '#444' : '#666',
-              }
-            }}
-          >
-            Pólók
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => setSelectedCategory('Nadrágok')}
-            sx={{ 
-              backgroundColor: selectedCategory === 'Nadrágok' ? '#333' : '#555',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: selectedCategory === 'Nadrágok' ? '#444' : '#666',
-              }
-            }}
-          >
-            Nadrágok
-          </Button>
-          <Button
-            variant="contained"
-            onClick={() => setSelectedCategory('Pulóverek')}
-            sx={{ 
-              backgroundColor: selectedCategory === 'Pulóverek' ? '#333' : '#555',
-              color: 'white',
-              '&:hover': {
-                backgroundColor: selectedCategory === 'Pulóverek' ? '#444' : '#666',
-              }
-            }}
-          >
-            Pulóverek
-          </Button>
-        </Box>
-          <Grid container spacing={3}>
-            {filteredProducts.map((product) => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={`product-${product.id}`}>
-                <Link to={`/termek/${product.id}`} style={{ textDecoration: 'none' }}>
-                  <Card sx={{ 
-                    height: '500px',
-                    backgroundColor: darkMode ? '#333' : 'white',
-                    color: darkMode ? 'white' : 'black',
-                    transition: 'transform 0.2s',
-                    '&:hover': {
-                      transform: 'scale(1.02)'
-                    }
-                  }}>
-                    <Box sx={{ position: 'relative', height: '350px' }}>
-                      <CardMedia
-                        component="img"
-                        sx={{ 
-                          height: '100%',
-                          width: '100%',
-                          objectFit: 'contain'
-                        }}
-                        image={product.imageUrl}
-                          alt={product.nev}
-                        />
-                      </Box>
-                      <CardContent>
-                        <Typography variant="h6" color={darkMode ? 'white' : 'black'}>
-                          {product.nev}
-                        </Typography>
-                        <Typography variant="h6" color="primary">
-                          {product.ar} Ft
-                        </Typography>
-                        <Typography variant="body2" color={darkMode ? 'grey.300' : 'text.secondary'}>
-                          {product.termekleiras}
-                        </Typography>
-                      </CardContent>
-                    </Card>
-                  </Link>
-                </Grid>
-              ))}
-          </Grid>
-        </Container>
-      </div>
-    );
-  };
-  
-  export default Oterm;
-  
-  
+          <Box sx={{ 
+            flex: '1.5',
+            p: 3,
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
+          }}>
+            <Box sx={{
+              width: '100%',
+              height: '500px',
+              borderRadius: '12px',
+              overflow: 'hidden',
+              boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+            }}>
+              <img
+                src={imageMap[product.imageUrl]}
+                alt={product.nev}
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  objectFit: 'contain'
+                }}
+              />
+            </Box>
+          </Box>
+
+          <Box sx={{ 
+            flex: '1',
+            p: 4,
+            backgroundColor: darkMode ? '#444' : '#f8f8f8',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: 3
+          }}>
+            <Typography variant="h4" sx={{ fontWeight: 'bold' }}>
+              {product.nev}
+            </Typography>
+            
+            <Typography variant="h5" sx={{ 
+              color: darkMode ? '#90caf9' : '#1976d2',
+              fontWeight: 'bold'
+            }}>
+              {product.ar} Ft
+            </Typography>
+
+            <Typography variant="body1" sx={{ 
+              backgroundColor: darkMode ? '#333' : '#fff',
+              p: 2,
+              borderRadius: '8px',
+              boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
+            }}>
+              {product.termekleiras}
+            </Typography>
+
+            <Box sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              p: 2,
+              backgroundColor: darkMode ? '#333' : '#fff',
+              borderRadius: '8px'
+            }}>
+              <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                Kategória:
+              </Typography>
+              <Typography variant="body1">
+                {product.kategoria}
+              </Typography>
+            </Box>
+
+            <Button 
+              variant="contained"
+              onClick={handleAddToCart}
+              sx={{ 
+                mt: 'auto',
+                py: 2,
+                backgroundColor: darkMode ? '#90caf9' : '#1976d2',
+                '&:hover': {
+                  backgroundColor: darkMode ? '#42a5f5' : '#1565c0',
+                }
+              }}
+            >
+              Kosárba
+            </Button>
+          </Box>
+        </Card>
+      </Container>
+      <Footer />
+    </div>
+  );
+}
+
+
+
+
+

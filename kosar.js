@@ -10,6 +10,7 @@ import {
   Card,
   CardContent,
   Button,
+  CardMedia,
   IconButton,
   Grid,
   Divider,
@@ -29,8 +30,41 @@ import AddIcon from '@mui/icons-material/Add';
 import RemoveIcon from '@mui/icons-material/Remove';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { useNavigate } from 'react-router-dom';
-
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+// Add these imports at the top
+import fehgatya from './fehgatya.png';
+import fehpolo from './fehpolo.png';
+import fehpull from './fehpull.png';
+import kekgatya from './kekgatya.png';
+import kekpolo from './kekpolo.png';
+import kekpull from './kekpull.png';
+import fekgatya from './fekgatya.png';
+import fekpolo from './fekpolo.png';
+import fekpull from './fekpull.png';
+import zoldgatya from './zoldgatya.png';
+import zoldpolo from './zoldpolo.png';
+import zoldpull from './zoldpull.png';
+import bezsgatya from './bezsgatya.png';
+import bezspolo from './bezspolo.png';
+import bezspull from './bezspull.png';
+
+const imageMap = {
+  'fehgatya.png': fehgatya,
+  'fehpolo.png': fehpolo,
+  'fehpull.png': fehpull,
+  'kekgatya.png': kekgatya,
+  'kekpolo.png': kekpolo,
+  'kekpull.png': kekpull,
+  'fekgatya.png': fekgatya,
+  'fekpolo.png': fekpolo,
+  'fekpull.png': fekpull,
+  'zoldgatya.png': zoldgatya,
+  'zoldpolo.png': zoldpolo,
+  'zoldpull.png': zoldpull,
+  'bezsgatya.png': bezsgatya,
+  'bezspolo.png': bezspolo,
+  'bezspull.png': bezspull
+};
 
 
 export default function Kosar() {
@@ -86,10 +120,10 @@ export default function Kosar() {
     localStorage.setItem('cartItems', JSON.stringify(updatedItems));
   };
     const handleCheckout = () => {
-      navigate('/shipping', { 
-        state: { 
-          cartItems,
-          totalPrice 
+      navigate('/shipping', {
+        state: {
+          cartItems: cartItems,
+          totalPrice: totalPrice
         }
       });
     };
@@ -313,11 +347,12 @@ export default function Kosar() {
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <img 
-                        src={item.imageUrl} 
-                        alt={item.nev} 
-                        style={{ width: 100, height: 100, objectFit: 'contain' }}
-                      />
+                    <img 
+  src={imageMap[item.imageUrl] || item.imageUrl} 
+  alt={item.nev} 
+  style={{ width: 100, height: 100, objectFit: 'contain' }}
+/>
+
                       <Typography variant="h6">{item.nev}</Typography>
                     </Box>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
@@ -400,3 +435,4 @@ export default function Kosar() {
     </div>
   );
 }
+

@@ -26,6 +26,8 @@ import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Menu from './menu2';
 import { useNavigate } from 'react-router-dom';
 import Footer from './footer';
+
+
 export default function Vinted() {
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
@@ -121,13 +123,13 @@ export default function Vinted() {
     };
     checkLoginStatus();
   }, []);
-
-  return (
-    <div style={{
-      backgroundColor: darkMode ? '#555' : '#f5f5f5',
-      color: darkMode ? 'white' : 'black',
-      minHeight: '100vh',
-    }}>
+    return (
+      <div style={{
+        backgroundColor: darkMode ? '#555' : '#f5f5f5',
+        color: darkMode ? 'white' : 'black',
+        minHeight: '100vh',
+        paddingBottom: '100px'  // Új sor
+      }}>
       <div style={{
         display: 'flex',
         alignItems: 'center',

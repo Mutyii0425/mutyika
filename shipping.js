@@ -26,42 +26,42 @@ export default function Shipping() {
     telepules: '',
     kozterulet: ''
   });
-    const handleSubmitOrder = async () => {
-      const userData = JSON.parse(localStorage.getItem('user'));
-      const userId = userData.f_azonosito;
-      
-      try {
-        const vevoResponse = await fetch('http://localhost:5000/vevo/create', {
+  const handleSubmitOrder = async () => {
+    try {
+      // Először létrehozzuk a vevőt
+      const vevoResponse = await fetch('http://localhost:5000/vevo/create', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(orderData)
+      });
+      const vevoResult = await vevoResponse.json();
+
+      // Végigmegyünk az összes kosárban lévő terméken
+      for (const item of cartItems) {
+        const orderPayload = {
+          termek: item.nev,
+          statusz: 'Új rendelés',
+          mennyiseg: item.mennyiseg,
+          vevo_id: vevoResult.id,
+          rendeles_id: vevoResult.id
+        };
+
+        // Minden termékhez külön rendelést hozunk létre
+        await fetch('http://localhost:5000/orders/create', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(orderData)
+          body: JSON.stringify(orderPayload)
         });
-        const vevoResult = await vevoResponse.json();
-
-        for (const item of cartItems) {
-          const orderPayload = {
-            termek: item.nev,
-            statusz: 'Új rendelés',
-            mennyiseg: item.mennyiseg,
-            vevo_id: vevoResult.id,  // Use the newly created vevo ID
-            rendeles_id: vevoResult.id  // Use the same vevo ID
-          };
-
-          await fetch('http://localhost:5000/orders/create', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(orderPayload)
-          });
-        }
-
-        localStorage.removeItem('cartItems');
-        alert('Rendelés sikeresen leadva!');
-        navigate('/vinted');
-      } catch (error) {
-        console.error('Order error:', error);
-        alert('Hiba történt a rendelés során!');
       }
-    };
+
+      localStorage.removeItem('cartItems');
+      alert('Rendelés sikeresen leadva!');
+      navigate('/vinted');
+    } catch (error) {
+      console.error('Rendelési hiba:', error);
+      alert('Hiba történt a rendelés során!');
+    }
+  };
   return (
     <Container maxWidth="md" sx={{ py: 4 }}>
       <Typography variant="h4" gutterBottom sx={{ color: darkMode ? 'white' : 'black' }}>
