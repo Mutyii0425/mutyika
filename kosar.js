@@ -85,33 +85,13 @@ export default function Kosar() {
     setCartItems(updatedItems);
     localStorage.setItem('cartItems', JSON.stringify(updatedItems));
   };
-    const handleCheckout = async () => {
-      try {
-        for (const item of cartItems) {
-          const orderData = {
-            termek: item.nev,
-            statusz: 'Új rendelés',
-            mennyiseg: item.mennyiseg,
-            vevo_id: 1,
-            rendeles_id: 1
-          };
-
-          await fetch('http://localhost:5000/orders/create', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify(orderData)
-          });
+    const handleCheckout = () => {
+      navigate('/shipping', { 
+        state: { 
+          cartItems,
+          totalPrice 
         }
-
-        setCartItems([]);
-        localStorage.removeItem('cartItems');
-        alert('Rendelés leadva!');
-        navigate('/vinted');
-      } catch (error) {
-        alert('Hiba történt!');
-      }
+      });
     };
   const handleToggle = () => {
     setOpen((prevOpen) => !prevOpen);

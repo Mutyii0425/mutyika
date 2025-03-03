@@ -25,7 +25,7 @@ import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
 import Menu from './menu2';
 import { useNavigate } from 'react-router-dom';
-
+import Footer from './footer';
 export default function Vinted() {
   const [darkMode, setDarkMode] = useState(true);
   const [sideMenuActive, setSideMenuActive] = useState(false);
@@ -382,6 +382,7 @@ export default function Vinted() {
           ))}
         </Grid>
       </Container>
+      <Footer />
     </div>
   );
 }

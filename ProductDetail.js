@@ -24,7 +24,11 @@ import {
 import { Link } from 'react-router-dom';
 import MenuIcon from '@mui/icons-material/Menu';
 import ShoppingCartIcon from '@mui/icons-material/ShoppingCart';
+import Footer from './footer';
 import Menu from './menu2';
+import ArrowBackIosIcon from '@mui/icons-material/ArrowBackIos';
+import ArrowForwardIosIcon from '@mui/icons-material/ArrowForwardIos';
+
 
 export default function ProductDetail() {
   const { id } = useParams();
@@ -87,7 +91,19 @@ export default function ProductDetail() {
     }
     setOpen(false);
   };
-
+    const handleImageNavigation = (direction) => {
+      const allImages = [product.imageUrl, ...(product.images || [])];
+      const currentIndex = allImages.indexOf(selectedImage || product.imageUrl);
+      let newIndex;
+    
+      if (direction === 'next') {
+        newIndex = (currentIndex + 1) % allImages.length;
+      } else {
+        newIndex = currentIndex - 1 < 0 ? allImages.length - 1 : currentIndex - 1;
+      }
+    
+      setSelectedImage(allImages[newIndex]);
+    };
   const handleListKeyDown = (event) => {
     if (event.key === 'Tab') {
       event.preventDefault();
@@ -318,8 +334,26 @@ export default function ProductDetail() {
                 height: '500px',
                 borderRadius: '12px',
                 overflow: 'hidden',
-                boxShadow: '0 2px 10px rgba(0,0,0,0.1)'
+                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                position: 'relative',
+                display: 'flex',
+                alignItems: 'center'
               }}>
+                <IconButton 
+                  onClick={() => handleImageNavigation('prev')}
+                  sx={{
+                    position: 'absolute',
+                    left: 10,
+                    zIndex: 2,
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.5)'
+                    }
+                  }}
+                >
+                  <ArrowBackIosIcon />
+                </IconButton>
+                
                 <img
                   src={selectedImage || product.imageUrl}
                   alt={product.nev}
@@ -329,6 +363,21 @@ export default function ProductDetail() {
                     objectFit: 'contain'
                   }}
                 />
+                
+                <IconButton 
+                  onClick={() => handleImageNavigation('next')}
+                  sx={{
+                    position: 'absolute',
+                    right: 10,
+                    zIndex: 2,
+                    backgroundColor: 'rgba(255,255,255,0.3)',
+                    '&:hover': {
+                      backgroundColor: 'rgba(255,255,255,0.5)'
+                    }
+                  }}
+                >
+                  <ArrowForwardIosIcon />
+                </IconButton>
               </Box>
 
               {/* Thumbnail Images */}
@@ -442,6 +491,9 @@ export default function ProductDetail() {
             </Box>
           </Card>
         </Container>
+        <Footer />
     </div>
   );
 }
+
+

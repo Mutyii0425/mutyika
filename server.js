@@ -122,6 +122,28 @@ app.get('/products/:id', (req, res) => {
   });
 });
 
+app.post('/vevo/create', (req, res) => {
+  const { nev, telefonszam, email, irsz, telepules, kozterulet } = req.body;
+  
+  const query = `
+    INSERT INTO vevo 
+    (nev, telefonszam, email, irsz, telepules, kozterulet) 
+    VALUES (?, ?, ?, ?, ?, ?)
+  `;
+  
+  db.query(query, [nev, telefonszam, email, irsz, telepules, kozterulet], (err, result) => {
+    if (err) {
+      console.log('Database error:', err);
+      res.status(500).json({ error: err.message });
+      return;
+    }
+    res.json({ 
+      success: true,
+      id: result.insertId 
+    });
+  });
+});
+
 
 app.post('/orders/create', (req, res) => {
   const { termek, statusz, mennyiseg, vevo_id } = req.body;
@@ -150,5 +172,4 @@ const port = 5000;
 app.listen(port, () => {
   console.log(`Server fut a ${port} porton`);
 });
-
 
