@@ -45,37 +45,30 @@ app.get('/products', (req, res) => {
 
 // Új termék mentése
 app.post('/usertermekek', (req, res) => {
-  const { kategoriaId, ar, nev, leiras, meret, imageUrl } = req.body;
+  const { kategoriaId, ar, nev, leiras, meret, imageUrl, images } = req.body;
   
-  console.log('Beérkezett adatok:', {
-    kategoriaId,
-    ar,
-    nev,
-    leiras,
-    meret,
-    imageUrl: imageUrl ? 'Kép megérkezett' : 'Nincs kép'
-  });
-
   const query = `
     INSERT INTO usertermekek 
-    (kategoriaId, ar, nev, leiras, meret, imageUrl) 
-    VALUES (?, ?, ?, ?, ?, ?)
+    (kategoriaId, ar, nev, leiras, meret, imageUrl, images) 
+    VALUES (?, ?, ?, ?, ?, ?, ?)
   `;
   
-  db.query(query, [kategoriaId, ar, nev, leiras, meret, imageUrl], (err, result) => {
+  db.query(query, [
+    kategoriaId, 
+    ar, 
+    nev, 
+    leiras, 
+    meret,
+    imageUrl,
+    images // A további képek JSON formátumban
+  ], (err, result) => {
     if (err) {
-      console.log('SQL hiba:', err);
       res.status(500).json({ error: err.message });
       return;
     }
-    res.json({ 
-      success: true, 
-      id: result.insertId,
-      message: 'Termék sikeresen mentve' 
-    });
+    res.json({ success: true, id: result.insertId });
   });
 });
-
 app.delete('/products/:id', (req, res) => {
   const productId = req.params.id;
   
