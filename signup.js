@@ -13,7 +13,9 @@ import logo from './logo02.png';
 import FormGroup from '@mui/material/FormGroup';
 import FormControlLabel from '@mui/material/FormControlLabel';
 import Switch from '@mui/material/Switch';
+import { Card, CardContent } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
+import { Dialog } from '@mui/material';
 import Typography from '@mui/material/Typography';
 import { Link } from 'react-router-dom';
 import { useNavigate } from 'react-router-dom';
@@ -30,9 +32,11 @@ export default function SignUpForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showSuccessAlert, setShowSuccessAlert] = useState(false);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [darkMode, setDarkMode] = useState(true);
+  const [showRegistrationSuccess, setShowRegistrationSuccess] = useState(false);
 
 
 
@@ -118,47 +122,32 @@ export default function SignUpForm() {
   const toggleConfirmPasswordVisibility = () =>
     setShowConfirmPassword((prev) => !prev);
   const navigate = useNavigate();
-
-
+     
   const handleSubmit = async (e) => {
-      e.preventDefault();
+    e.preventDefault();
+    try {
+      const response = await fetch('http://localhost:4000/register', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name, email, password })
+      });
   
-      if (password !== confirmPassword) {
-        alert('A jelszavak nem egyeznek!');
-        return;
+      const data = await response.json();
+      if (response.ok) {
+        localStorage.setItem('user', JSON.stringify({
+          ...data.user,
+          isNewRegistration: true
+        }));
+        setShowRegistrationSuccess(true);
+        setTimeout(() => {
+          navigate('/kezdolap');
+        }, 2000);
       }
-  
-      try {
-        const response = await fetch('http://localhost:4000/register', 
-        {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({ name, email, password }),
-        });
-  
-        if (!response.ok) {
-          const errorData = await response.json();
-          alert(`Hiba: ${errorData.error}`);
-        } else {
-          const data = await response.json();
-  
-          alert(data.message); // Sikeres regisztráció üzenet
-  
-          navigate('/kezdolap'); // Navigálás a kezdőlapra
-  
-          // űrlap törlése a sikeres regisztráció után
-          setName('');
-          setEmail('');
-          setPassword('');
-          setConfirmPassword('');
-        }
-      } catch (error) {
-        console.error('Hálózati hiba:', error);
-        alert('Hiba történt a regisztráció során!');
-      }
-    };
+    } catch (error) {
+      console.error('Registration error:', error);
+    }
+  };
+
   return (
     <div
       style={{
@@ -447,7 +436,71 @@ export default function SignUpForm() {
             top: '4%',
           }}
         />
+        
       </Container>
+      <Dialog
+  open={showRegistrationSuccess}
+  sx={{
+    '& .MuiDialog-paper': {
+      backgroundColor: darkMode ? '#1E1E1E' : '#fff',
+      borderRadius: '25px',
+      padding: '3rem',
+      minWidth: '450px',
+      textAlign: 'center',
+      boxShadow: darkMode 
+        ? '0 8px 32px rgba(96,186,151,0.3)' 
+        : '0 8px 32px rgba(0,0,0,0.2)',
+      border: '2px solid',
+      borderColor: darkMode ? '#60BA97' : '#4e9d7e',
+      position: 'relative',
+      overflow: 'hidden'
+    }
+  }}
+>
+  <Box
+    sx={{
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      height: '4px',
+      background: 'linear-gradient(90deg, #60BA97, #4e9d7e)',
+      animation: 'loadingBar 2s ease-in-out',
+      '@keyframes loadingBar': {
+        '0%': { width: '0%' },
+        '100%': { width: '100%' }
+      }
+    }}
+  />
+  <Box sx={{ position: 'relative' }}>    
+    <Typography 
+      variant="h4" 
+      sx={{ 
+        color: darkMode ? '#60BA97' : '#4e9d7e',
+        mb: 3,
+        fontWeight: 800,
+        letterSpacing: '1px',
+        textTransform: 'uppercase'
+      }}
+    >
+      Sikeres regisztráció!
+    </Typography>
+    
+    <Typography 
+      variant="h6" 
+      sx={{ 
+        color: darkMode ? '#fff' : '#333',
+        mb: 4,
+        fontWeight: 400,
+        lineHeight: 1.6
+      }}
+    >
+      Köszönjük, hogy csatlakoztál az Adali Clothing közösségéhez!
+    </Typography>
+  </Box>
+</Dialog>
+
+
     </div>
   );
 }
